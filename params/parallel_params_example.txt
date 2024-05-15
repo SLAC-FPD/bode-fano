@@ -1,0 +1,7 @@
+#PARAMS
+ibias_mag,3.446e-05
+tran_step,1e-12
+tran_stop,2.0e-07
+tran_start,1.0e-07
+maxdata,1024000
+filename,Parallel_Example
