@@ -5,9 +5,9 @@ from circuit_calcs import *
 
 # runner mode plots various variables in one circuit
 # looper mode plots change of results of one circuit due to change of params
-mode = "looper"  # "looper", "runner"
+mode = "runner"  # "looper", "runner"
 template = "rqu"  # "parallel"
-param_file = "rqu_params_240507.txt"  # "parallel_params_240506.txt"
+param_file = "params/rqu_params_240507.txt"  # "parallel_params_240506.txt"
 results_to_watch = ["v(101)", "v(102)", "v(103)"]  # phase, leff, etc.
 
 # looper settings

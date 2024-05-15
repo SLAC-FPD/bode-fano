@@ -7,7 +7,7 @@ from circuit_calcs import *
 # looper mode plots change of results of one circuit due to change of params
 mode = "runner"  # "looper"  # 
 template = "kent"
-param_file = "kent_params_240507.txt"
+param_file = "params/kent_params_240507.txt"
 variation = "biased_jj"  # None  # 
 results_to_watch = ["v(101)", "v(102)"]  # phase, leff, etc.
 

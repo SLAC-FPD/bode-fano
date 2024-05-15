@@ -17,9 +17,11 @@ class CircuitData:
         self.reset()
         
     def reset(self):
+        # full reset
         # from .cir input wrspice file
         self.params = {}  # dictionary with all params
         self.circuit_type = None
+        self.param_file_name = None
         self.circuit_variation = None
         self.circuit_text = {}  # dictionary used to create .cir file (& maybe create variations or new templates later)
         # measurables: labeled results, can be phase/circuit/voltage (for now)
@@ -33,6 +35,11 @@ class CircuitData:
         self.data = None
         self.vars = []
         # self.read_file(self.filename)
+
+    def data_reset(self):
+        # quick data reset to prevent duplicates
+        self.measurables = {"phases": [], "currents": [], "voltages": [], "single_phases": [], "others": []}
+        self.vars = []
         
     def __str__(self):
         return self.notes  # prints template notes
@@ -40,6 +47,7 @@ class CircuitData:
     def simulation_cycle(self, template_name, param_file_name=None, variation=None):  # can we get this inherited or sth?
         if self.circuit_type != template_name:  # only if using a different circuit mid-script
             self.reset()
+        self.data_reset()
         self.read_template(template_name, param_file_name, variation)  # or smth else later
         self.create_cirfile()
         self.simulate_circuit()
@@ -48,18 +56,21 @@ class CircuitData:
     def change_param(self, param, value):
         self.params[param] = value 
         
-    def read_param(self, param_line):
+    def read_param(self, param_line, force_change=False):
         # read param from a text line, either from template default or separate file
         param = param_line.split(",")  # gets REQUIRED parameter name & default value
-        try:
-            param_value = self.params[param[0]]  # param already in CircuitData
-        except KeyError:
-            param_value = param[1].strip()  # param is from input
-            try: # change param value to wanted type. not required to make a .cir file, but is when using params for math
-                if param[0] in self.integer_params: param_value = int(param_value)  # param needs to be int
-                else: param_value = float(param_value.strip())  # param needs to be float
-            except ValueError: pass  # param is string (leave alone)
+        try:  # keep original parameter value
+            param_value_keep = self.params[param[0]]  # param already in CircuitData
+        except KeyError: param_value_keep = None
         finally:
+            param_value_change = param[1].strip()  # param is from input
+            try: # change param value to wanted type. not required to make a .cir file, but is when using params for math
+                if param[0] in self.integer_params: param_value_change = int(param_value_change)  # param needs to be int
+                else: param_value_change = float(param_value_change.strip())  # param needs to be float
+            except ValueError: pass  # param is string (leave alone)
+            if force_change: param_value = param_value_change
+            elif param_value_keep is None: param_value = param_value_change
+            else: param_value = param_value_keep
             self.params[param[0]] = param_value
          
     def read_template(self, template_name, param_file_name=None, variation=None):
@@ -67,7 +78,8 @@ class CircuitData:
         self.circuit_variation = variation
         # if param_file exists, values there are prioritized
         # if there is no param_file, default values in template are used
-        if param_file_name is not None:
+        if param_file_name is not None and param_file_name != self.param_file_name:
+            print(f"Using parameters from {param_file_name}.")
             param_file = open(f"{param_file_name}", "r")  # must include extension
             param_counter = 0
             for param_line in param_file:
@@ -75,9 +87,10 @@ class CircuitData:
                     param_counter += 1
                     continue
                 elif param_line.strip() == "": continue
-                elif param_counter == 1: self.read_param(param_line)
+                elif param_counter == 1: self.read_param(param_line, force_change=True)
                 elif param_counter == 2: self.params["measurables"] = param_line.strip()
             param_file.close()
+        self.param_file_name = param_file_name  # prevents reading param file again if used repeatedly
         template_file = open(f"templates/{template_name}_template", "r")
         template_line = None
         template_counter = 0
@@ -105,7 +118,7 @@ class CircuitData:
                 else: self.circuit_text[cirfile_line[0].strip()] = "\n"  # not the best practice, i think
             elif template_counter == 5:  # change the lines using variations
                 # look for variation title in template file. if match, then fix the circuit_text according to variation
-                var_list = template_line.split("=")
+                var_list = template_line.split(";")
                 if var_list[0] == "var" and var_list[1].strip() == self.circuit_variation:
                     template_variation = True
                     print(f"Using variation {var_list[1].strip()}.")
