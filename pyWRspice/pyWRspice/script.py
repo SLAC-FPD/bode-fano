@@ -8,7 +8,9 @@ import numpy as np
 import networkx as nx
 import pandas as pd
 import logging, os
-from pyWRspice.simulation import Variable, write_rawfile
+import sys
+
+from .simulation import Variable, write_rawfile
 
 # Get the style from NODE_STYLE.csv spreadsheet
 dir_path = os.path.dirname(os.path.realpath(__file__))
