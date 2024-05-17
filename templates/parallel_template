@@ -10,8 +10,9 @@ i1_mag,1e-9
 i1_freq,30e6
 ics_mag,1.1e-6
 phi_mag,0
-lb_mag,3e-10
-l1_mag,0
+l1_mag,3e-10
+l2_mag,0
+lb_mag,0
 k1_mag,1
 lb_bias_mag,3.0e-12
 ibias_mag, 0
@@ -22,18 +23,18 @@ maxdata,1024000
 filename,Parallel
 
 #MEASURABLES
-@b1[phase] i(lb) i(lb_bias) v(0)-v(2) v(1)-v(0) v(2)-v(1) v(3)-v(0) v(101)
+@b1[phase] i(l1) i(l2) i(lbias) v(0)-v(2) v(1)-v(0) v(2)-v(1) v(3)-v(0) v(101)
 
 #CIRCUIT
 Parallel circuit
 .model {model} jj(level={level}, icrit={icrit_mag})
 i1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
 b1 1 2 101 {model} ics={ics_mag} phi={phi_mag}
-lb 2 1 {lb_mag}
-l1 2 0 {l1_mag}
-k1 lb lb_bias {k1_mag}
-lb_bias 3 0 {lb_bias_mag}
-ibias_mag 0 3 {ibias_mag}
+l1 1 2 {l1_mag}
+l2 2 0 {l2_mag}
+k1 l1 lbias {k1_mag}
+lbias 3 0 {lb_bias_mag}
+ibias 0 3 {ibias_mag}
 .tran {tran_step} {tran_stop} {tran_start} uic 
 .control
 set maxdata={maxdata}
@@ -42,6 +43,11 @@ write {filename}.txt {measurables}
 .endc
 
 #VARIATIONS
+var;jj_current
+change;b1 1 4 101 {model} ics={ics_mag} phi={phi_mag}
+add;lb 4 2 {lb_mag}
+addm;i(lb)
+end
 
 #NOTES
 This is a parallel circuit with an optional inductor connected in series.

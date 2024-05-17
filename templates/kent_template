@@ -50,19 +50,19 @@ write {filename}.txt {measurables}
 .endc
 
 #VARIATIONS
-var=biased_jj
-add=l3 2 3 {l3_mag}
-add=l4 0 5 {l4_mag}
-add=k2 l3 l4 -1
-add=ibias 0 5 {ibias_mag}
-addm=i(l3)
-addm=i(l4)
+var;biased_jj
+add;l3 2 3 {l3_mag}
+add;l4 0 5 {l4_mag}
+add;k2 l3 l4 -1
+add;ibias 0 5 {ibias_mag}
+addm;i(l3)
+addm;i(l4)
 end
-var=no_b2
-remove=b2
-change=l2 3 0 {l2_mag}
-removem=v(4)-v(3)
-addm=v(3)-v(0)
+var;no_b2
+remove;b2
+change;l2 3 0 {l2_mag}
+removem;v(4)-v(3)
+addm;v(3)-v(0)
 end
 
 #NOTES
