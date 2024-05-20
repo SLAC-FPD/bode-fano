@@ -130,10 +130,10 @@ class CircuitData:
                     elif var_list[0] == "addm":  # add to measurables in params
                         self.params["measurables"] += f" {var_list[1].strip()}"
                     elif var_list[0] == "remove":
-                        self.circuit_text.pop(var_list[1], None)  # remove directly from circuit text
+                        self.circuit_text.pop(var_list[1].strip(), None)  # remove directly from circuit text
                     elif var_list[0] == "removem":
-                        self.params["measurables"].replace(var_list[1], "")  # remove directly from measurables
-                        self.params["measurables"].replace("  ", " ")  # remove the double space, if it exists
+                        self.params["measurables"] = self.params["measurables"].replace(var_list[1].strip(), "")  # remove directly from measurables
+                        self.params["measurables"] = self.params["measurables"].replace("  ", " ")  # remove the double space, if it exists
                     elif var_list[0] == "change":
                         cirfile_line = var_list[1].split(" ", maxsplit=1)
                         self.circuit_text[cirfile_line[0]] = cirfile_line[1]  # change circuit text directly
@@ -158,6 +158,10 @@ class CircuitData:
         cirfile_text = ''.join([f"{key} {value}" for key,value in self.circuit_text.items()])
         cirfile.write(cirfile_text.format(**self.params))  # unpack params dictionary and add all in circfile
         cirfile.close()
+        
+    def print_circuit_text(self):  # returns template currently in use
+        circuit_text = ''.join([f"{key} {value}" for key,value in self.circuit_text.items()])
+        return circuit_text
         
     def simulate_circuit(self, print_time=True):
         t1 = time.time()
