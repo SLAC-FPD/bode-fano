@@ -49,5 +49,15 @@ add;lb 4 2 {lb_mag}
 addm;i(lb)
 end
 
+var;current_bias
+remove;k1
+remove;lbias
+change;b1 1 4 101 {model} ics={ics_mag} phi={phi_mag}
+change;l1 4 2 {l1_mag}
+change;ibias 1 2 {ibias_mag}
+removem;v(3)-v(0)
+removem;i(lbias)
+end
+
 #NOTES
 This is a parallel circuit with an optional inductor connected in series.
