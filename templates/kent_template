@@ -61,7 +61,10 @@ end
 var;no_b2
 remove;b2
 change;l2 3 0 {l2_mag}
+removem;@b2[phase]
+removem;v(0)-v(4)
 removem;v(4)-v(3)
+removem;v(102)
 addm;v(3)-v(0)
 end
 
