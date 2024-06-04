@@ -37,14 +37,14 @@ def do_fft(time, data, round_stepsize=True, round_duration=True):
         print(f"FFT: Rounded duration to {duration}.")
     # rbw = 1/duration
     # sample_rate = 1/stepsize
-    npts = round(duration/stepsize)  # must be integer
+    npts = round(duration/stepsize)+1  # must be integer
     # print(stepsize, duration, npts)
     # xf = np.linspace(0.0, npts*duration, npts, endpoint=False)
     # fft will remove last point in fft because of how fftfreq works
     if npts == len(data):
-        xf = fftfreq(npts, stepsize)  # [:-1]
-    else: xf = fftfreq(len(data), stepsize)
-    yf = fft(data)  # [:-1]  # [:npts//2]
+        xf = fftfreq(npts - 1, stepsize)  # [:-1]
+    else: xf = fftfreq(len(data) - 1, stepsize)
+    yf = fft(data[:-1])  # [:npts//2]
     return xf, yf
 
 def round_value(value):  #, nine_count=3):  # don't do for > 1 yet
