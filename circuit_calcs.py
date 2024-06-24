@@ -119,3 +119,22 @@ def calc_r(reff, rt, leff, lt, m, omega, l, ls, no_r=False):
         denom = rdiff*m**2
         r = num/denom
     return r
+    
+def calc_flat_wire(l, w, h, sigma=5.8e7):
+    # Get rectangular wire inductance and resistance
+    # all in SI units! copper conductance = 5.8e7 S*m
+    R = l/(w*h)/sigma
+    L = 2e-7*l*(np.log(2*l/(w+h)) + 0.5 + 0.2235*(w+h)/l)
+    return R, L
+
+def calc_k_report(z1, z2, zm, freq):
+    omega = 2*np.pi*freq
+    l1, l2 = z1/omega, z2/omega
+    m = zm/omega
+    k = calc_k(l1, l2, m)
+    print(f"l1: {l1} H, l2: {l2} H, k: {k}")
+    
+def calc_capacitance(A, d, k, w=0, h=0):
+    if w*h != 0: A = w*h
+    return k*cnst.epsilon_0*A/d
+    
