@@ -5,6 +5,7 @@ kent circuit
 model,jj1
 level,1
 icrit_mag,1.0e-6
+cpic_mag,0
 i1_phase,0
 i1_mag,1e-9
 i1_freq,30e6
@@ -27,13 +28,15 @@ l3_mag,3e-12
 l4_mag,3e-12
 k2_mag,-1
 ibias_mag,1e-7
+r1_mag,0.1
+c1_mag,1e-12
 
 #MEASURABLES
-@b1[phase] @b2[phase] i(l0) i(l1) i(l2) v(0)-v(4) v(1)-v(0) v(2)-v(0) v(3)-v(2) v(4)-v(3) v(101) v(102)
+@b1[phase] @b1[cap] @b2[phase] i(l0) i(l1) i(l2) v(0)-v(4) v(1)-v(0) v(2)-v(0) v(3)-v(2) v(4)-v(3) v(101) v(102)
 
 #CIRCUIT
 Kent circuit
-.model {model} jj(level={level}, icrit={icrit_mag})
+.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag})
 i1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
 idc 0 1 {idc_mag}
 l0 1 0 {l0_mag}
@@ -67,8 +70,41 @@ removem;v(4)-v(3)
 removem;v(102)
 addm;v(3)-v(0)
 end
+var;no_b2_with_r
+remove;b2
+remove;l2
+add;r1 3 0 {r1_mag}
+removem;@b2[phase]
+removem;v(0)-v(4)
+removem;v(4)-v(3)
+removem;v(102)
+removem;i(l2)
+addm;v(3)-v(0)
+end
+var;no_b2_with_c
+remove;b2
+remove;l2
+add;c1 3 0 {c1_mag}
+removem;@b2[phase]
+removem;v(0)-v(4)
+removem;v(4)-v(3)
+removem;v(102)
+removem;i(l2)
+addm;v(3)-v(0)
+end
+var;pulsed_no_b2
+change;idc 0 1 pulse(5e-6 {idc_mag} 2e-12 0 0 2e-12 4e-12)
+remove;b2
+change;l2 3 0 {l2_mag}
+removem;@b2[phase]
+removem;v(0)-v(4)
+removem;v(4)-v(3)
+removem;v(102)
+addm;v(3)-v(0)
+end
 
 #NOTES
 This is the circuit that Kent suggested as a possible method of Bode-Fano evasion.
 Variation "biased_jj" changes one of the junctions to a loop with an inductor which can be flux biased separately.
 Variation "no_b2" removes one of the junctions and just works with one JJ in the circuit.
+Variation "pulsed_no_b2" changes the constant bias current into a 1e11 s long (fixed for now) pulse.

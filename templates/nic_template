@@ -1,0 +1,63 @@
+#TEMPLATE
+NIC-Like circuit
+
+#PARAMS
+model,jj1
+level,1
+icrit_mag,1.0e-6
+i1_phase,0
+i1_mag,1e-9
+i1_freq,30e6
+ics_mag,1.1e-6
+phi_mag,0
+ics2_mag,1.1e-6
+phi2_mag,0
+ics3_mag,1.1e-6
+phi3_mag,0
+idc_mag,0
+ib_mag,0
+ib2_mag,0
+l1_mag,0
+l2_mag,3e-10
+l3_mag,3e-10
+lb_mag,0
+lb2_mag,0
+k1_mag,0
+k2_mag,0
+tran_step,1e-13
+tran_stop,2e-10
+tran_start,0
+maxdata,1024000
+filename,NICLike
+
+#MEASURABLES
+i(l1) i(l2) i(l3) v(0)-v(2) v(1)-v(0) v(2)-v(1) v(3)-v(0) v(101) v(102) v(103)
+
+#CIRCUIT
+Parallel circuit
+.model {model} jj(level={level}, icrit={icrit_mag})
+i1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+idc 0 1 {idc_mag}
+l1 1 2 {l1_mag}
+l2 2 4 {l2_mag}
+k1 l2 lb {k1_mag}
+lb 0 5 {lb_mag}
+ib 5 0 {ib_mag}
+b1 2 3 101 {model} ics={ics_mag} phi={phi_mag}
+b2 3 4 102 {model} ics={ics2_mag} phi={phi2_mag}
+b3 3 0 103 {model} ics={ics3_mag} phi={phi3_mag}
+l3 4 0 {l3_mag}
+k2 l3 lb2 {k2_mag}
+lb2 0 6 {lb2_mag}
+ib2 6 0 {ib2_mag}
+.tran {tran_step} {tran_stop} {tran_start} uic 
+.control
+set maxdata={maxdata}
+run
+write {filename}.txt {measurables}
+.endc
+
+#VARIATIONS
+
+#NOTES
+This is a random circuit that lies somewhere in between a RQU circuit or NIC.

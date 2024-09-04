@@ -21,6 +21,7 @@ tran_stop,6e-7
 tran_start,1e-7
 maxdata,1024000
 filename,Parallel
+idc_mag,0
 
 #MEASURABLES
 @b1[phase] i(l1) i(l2) i(lbias) v(0)-v(2) v(1)-v(0) v(2)-v(1) v(3)-v(0) v(101)
@@ -47,6 +48,15 @@ var;jj_current
 change;b1 1 4 101 {model} ics={ics_mag} phi={phi_mag}
 add;lb 4 2 {lb_mag}
 addm;i(lb)
+end
+
+var;add_idc
+add;idc 0 1 {idc_mag}
+remove;k1
+remove;lbias
+remove;ibias
+removem;v(3)-v(0)
+removem;i(lbias)
 end
 
 var;current_bias
