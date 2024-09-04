@@ -8,6 +8,7 @@ import os
 from scipy.fft import fft, fftfreq
 from scipy import constants as cnst
 from matplotlib import pyplot as plt
+import matplotlib.colors as colors
 from lmfit import Model
 # custom imports
 from circuit_calcs import *
@@ -159,9 +160,9 @@ class CircuitData:
         cirfile.write(cirfile_text.format(**self.params))  # unpack params dictionary and add all in circfile
         cirfile.close()
         
-    def print_circuit_text(self):  # returns template currently in use
-        circuit_text = ''.join([f"{key} {value}" for key,value in self.circuit_text.items()])
-        return circuit_text
+    def template_text(self):  # returns template currently in use
+        temp_text = ''.join([f"{key} {value}" for key,value in self.circuit_text.items()])
+        return temp_text
         
     def simulate_circuit(self, print_time=True):
         t1 = time.time()

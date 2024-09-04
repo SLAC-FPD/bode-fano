@@ -137,4 +137,3 @@ def calc_k_report(z1, z2, zm, freq):
 def calc_capacitance(A, d, k, w=0, h=0):
     if w*h != 0: A = w*h
     return k*cnst.epsilon_0*A/d
-    
