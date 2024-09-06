@@ -5,7 +5,8 @@ kent circuit
 model,jj1
 level,1
 icrit_mag,1.0e-6
-cpic_mag,0
+cpic_mag,0.7e-9
+vm_mag,16.5e-3
 i1_phase,0
 i1_mag,1e-9
 i1_freq,30e6
@@ -36,7 +37,7 @@ c1_mag,1e-12
 
 #CIRCUIT
 Kent circuit
-.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag})
+.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag})
 i1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
 idc 0 1 {idc_mag}
 l0 1 0 {l0_mag}
@@ -47,6 +48,7 @@ b2 3 4 102 {model} ics={ics2_mag} phi={phi2_mag}
 l2 4 0 {l2_mag}
 .tran {tran_step} {tran_stop} {tran_start} uic 
 .control
+devload all
 set maxdata={maxdata}
 run
 write {filename}.txt {measurables}
