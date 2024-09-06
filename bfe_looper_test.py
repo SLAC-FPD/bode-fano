@@ -4,7 +4,7 @@ from circuit_calcs import *
 # SETTINGS
 
 template = "kent"  # "parallel"  # 
-param_file = "params/kent_params_240731.txt"  # "params/parallel_params_240709.txt"  # 
+param_file = "params/kent_params_240905.txt"  # "params/parallel_params_240709.txt"  # 
 variation = "no_b2"  # "pulsed_no_b2"  # "add_idc"  # "biased_jj"  # 
 results_to_watch = ["v(101)", "i(l0)", "i(l2)"]  # , "v(102)"]  # phase, leff, etc.
 
@@ -14,12 +14,12 @@ results_to_watch = ["v(101)", "i(l0)", "i(l2)"]  # , "v(102)"]  # phase, leff, e
 cd = CircuitData()
 
 # average of dc bias amplitude
-param_name1 = "i1_mag"
-param_list1 = np.logspace(-10, -5, 51)
+param_name1 = "cpic_mag" # "phi1_mag"  # "vm_mag"  # "i1_mag"
+param_list1 = np.linspace(0, 1e-9, 51)  # 0, 2*np.pi, 73)  # np.linspace(8.e-3, 100e-3, 185)  # np.logspace(-10, -5, 51)
 
 # amplitude of oscillations fed (if using idc_mag)
 param_name2 = "idc_mag"  # "i1_freq"  # 
-param_list2 = np.linspace(0.e-6, 7.5e-6, 76)  # np.linspace(2.5e11, 3e11, 51)  # 
+param_list2 = np.linspace(0.e-6, 7.5e-6, 151)  # np.linspace(2.5e6, 3e6, 51)  # 
 
 phase_results_2d = []
 amp_il2_results_2d = []
@@ -31,7 +31,7 @@ cd.change_param("tran_start", 3e-10)
 
 # Fixed parameter (Frequency if using i1_freq)
 fixed_param = "i1_freq"  # "idc_mag"  # 
-cd.change_param(fixed_param, 2.5e11)  # 2.77e11)  # 4.15e-6)  # 
+cd.change_param(fixed_param, 1.e6)  #  4.15e-6)  # 
 
 t1 = time.time()
 for param1 in param_list1:
@@ -69,7 +69,7 @@ print(f"Simulation loop took {(t2 - t1)/60} minutes.")
 plt.imshow(phase_results_2d, extent=(param_list2[0], param_list2[-1], param_list1[-1], param_list1[0]), interpolation='none', aspect="auto", cmap="seismic")  # , norm=colors.LogNorm())
 plt.xlabel(f"{param_name2}")
 plt.ylabel(f"{param_name1}")
-plt.yscale("log")
+# plt.yscale("log")
 
 cbar = plt.colorbar()
 # plt.clim(-5, 5)
@@ -83,7 +83,7 @@ plt.show()
 plt.imshow(amp_il2_results_2d, extent=(param_list2[0], param_list2[-1], param_list1[-1], param_list1[0]), interpolation='none', aspect="auto")  # , cmap="seismic")  # , norm=colors.LogNorm())
 plt.xlabel(f"{param_name2}")
 plt.ylabel(f"{param_name1}")
-plt.yscale("log")
+# plt.yscale("log")
 
 cbar = plt.colorbar()
 # plt.clim(-5, 5)
