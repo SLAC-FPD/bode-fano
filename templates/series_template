@@ -1,0 +1,50 @@
+#TEMPLATE
+series circuit
+
+#PARAMS
+model,jj1
+level,1
+icrit_mag,1.0e-6
+i1_phase,0
+i1_mag,0e-6
+i1_freq,30e6
+idc_mag,0.8195e-6
+l0_mag,5e-10
+ics1_mag,1.1e-6
+phi1_mag,0
+tran_step,1e-13
+tran_stop,3e-10
+tran_start,0e-10
+maxdata,1024000
+filename,Series
+
+#MEASURABLES
+i(l0) v(0)-v(1) v(1)-v(2) v(2)-v(0) v(101)
+
+#CIRCUIT
+Kent circuit
+.model {model} jj(level={level}, icrit={icrit_mag})
+i1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+idc 0 1 {idc_mag}
+l0 1 2 {l0_mag}
+b1 2 0 101 {model} ics={ics1_mag} phi={phi1_mag}
+
+.tran {tran_step} {tran_stop} {tran_start} uic 
+.control
+set maxdata={maxdata}
+run
+write {filename}.txt {measurables}
+.endc
+
+#VARIATIONS
+var;twin_jjs
+add;b2 3 6 102 {model} ics={ics1_mag} phi={phi1_mag}
+change;l2 6 0 {l4_mag}
+addm;v(102)
+addm;v(3)-v(6)
+addm;v(6)-v(0)
+removem;v(3)-v(0)
+end
+
+#NOTES
+This is an "upgrade" of the circuit that Kent suggested as a possible method of Bode-Fano evasion.
