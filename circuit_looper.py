@@ -14,9 +14,9 @@ results_to_watch = ["v(101)"]  # , "i(l0)", "i(l2)"]  # , "v(102)"]  # phase, le
 # looper settings
 if mode == "looper":
     param_to_change = "phi1_mag"  # "idc_mag"  # 
-    param_list = np.linspace(0.9999999999*np.pi, 1.0000000001*np.pi, 21)  # np.linspace(0*np.pi, 2*np.pi, 721)  # np.linspace(0e-6, 7.5e-6, 151)  # 
+    param_list = np.linspace(0.9999999999*np.pi, 1.0000000001*np.pi, 21)  # np.linspace(0e-6, 7.5e-6, 151)  # 
     results_list = {}
-    all_accels_list = {"phase": [], "accel": [], "accel_mod": [], "init_val": []}
+    # all_accels_list = {"phase": [], "accel": [], "accel_mod": [], "init_val": []}
     for result in results_to_watch:
         results_list[result] = []
 
@@ -53,7 +53,7 @@ elif mode == "looper":
             cd.simulation_cycle(template, param_file, variation)  # needed to initialize
             # cd.change_param("i1_mag", 0)
             # cd.change_param("tran_step", 1e-13)
-            cd.change_param("tran_stop", 4e-10)
+            # cd.change_param("tran_stop", 2e-9)  # 2e-10)
             # cd.change_param("tran_start", 0e-10)
             # cd.change_param("phi1_mag", 0)
         cd.change_param(param_to_change, param)
@@ -66,14 +66,14 @@ elif mode == "looper":
             plt.tight_layout()
             plt.grid()
             plt.legend()
-            # plt.savefig(f"phi1_graphs/{count}_{param_to_change}.png")
+            plt.savefig(f"phi1_graphs/{count}_{param_to_change}.png")
             plt.clf()
             # setup
             delta_t = (time_array[1] - time_array[0])
             cap = cd.data["@b1[cap]"][0]
             cond = cd.data["@b1[g0]"][0]
-            l_geom = cd.params["l1_mag"]
             
+            '''
             phase_x = cd.data[result].to_numpy()  # "position"
             phase_v = (phase_x[:-1] - phase_x[1:])/delta_t  # "velocity"
             phase_for_v = phase_x[:-1]
@@ -81,20 +81,20 @@ elif mode == "looper":
             phase_for_a = phase_x[1:-1]
             phasev_for_a = (phase_v[:-1] + phase_v[1:])/2  # "average velocity"
             phase_a_mod = phase_a*cap - phasev_for_a*cond
-            # a, b = np.polyfit(phase_for_a, phase_a*cap, 1)
-            # x = phase_for_a
-            # fit = a*x + b
+            a, b = np.polyfit(phase_for_a, phase_a*cap, 1)
+            x = phase_for_a
+            fit = a*x + b
             # plt.plot(phase_for_a, phase_a*cap, "x", label=f"Acceleration, Initial {param_to_change}={param}")
             # plt.plot(x, fit, "r--", label=f"Fit, Initial {param_to_change}={param}")
-            # plt.plot(phase_for_a, phase_a*cap - fit, "x", label=f"Acceleration (Fit Removed), Initial {param_to_change}={param}")
+            plt.plot(phase_for_a, phase_a*cap - fit, "x", label=f"Acceleration (Fit Removed), Initial {param_to_change}={param}")
             plt.plot(phase_for_a, phasev_for_a * cond, "x", label=f"Velocity, Initial {param_to_change}={param}")
-            # plt.plot(phase_for_a, phase_a_mod - fit, "x", label=f"Mod?, Initial {param_to_change}={param}")
+            plt.plot(phase_for_a, phase_a_mod - fit, "x", label=f"Mod?, Initial {param_to_change}={param}")
             plt.tight_layout()
             plt.grid()
             plt.legend()
-            # plt.savefig(f"{param_to_change}_graphs/{count}_{param_to_change}_accel.png")
+            plt.savefig(f"{param_to_change}_graphs/{count}_{param_to_change}_accel.png")
             plt.clf()
-            phase_a_mod = phase_a - phasev_for_a*cond/cap + (0 - param)/l_geom/phi0*np.e  # normalize to phase_a levels
+            phase_a_mod = phase_a - phasev_for_a*cond/cap  # normalize to phase_a levels
             for phase_ in phase_for_a:
                 all_accels_list["phase"].append(phase_)
             for accel_ in phase_a:
@@ -102,6 +102,7 @@ elif mode == "looper":
             for accel_mod_ in phase_a_mod:
                 all_accels_list["accel_mod"].append(accel_mod_)
                 all_accels_list["init_val"].append(param)
+            '''
         count += 1
     t2 = time.time()
     print(f"Simulation loop took {(t2 - t1)/60} minutes.")
@@ -113,11 +114,11 @@ elif mode == "looper":
     plt.grid()
     plt.legend()
     plt.savefig(f"{result}_{param_to_change}.png")
-    plt.clf()
-    # plt.show()
-    
-    plt.plot(all_accels_list["phase"], all_accels_list["accel"], ".", label="Acceleration")
-    plt.plot(all_accels_list["phase"], all_accels_list["accel_mod"], ".", label="Acceleration Mod")
+    # plt.clf()
+    plt.show()
+    '''
+    plt.plot(all_accels_list["phase"], all_accels_list["accel"], "x", label="Acceleration")
+    plt.plot(all_accels_list["phase"], all_accels_list["accel_mod"], "x", label="Acceleration Mod")
     plt.xlabel("Phase")
     plt.ylabel("Acceleration")
     plt.tight_layout()
@@ -126,7 +127,6 @@ elif mode == "looper":
     plt.savefig(f"{result}_accel_{param_to_change}.png")
     plt.show()
     
-    '''
     # ad-hoc
     l0, l1, k = 5e-10, 5e-10, 0.5
     # phases = results_list[result]
@@ -149,14 +149,8 @@ elif mode == "looper":
     '''
     
 # save collected data
+'''
 all_accels_list_pd = pd.DataFrame(all_accels_list)
 all_accels_list_pd = all_accels_list_pd.sort_values("phase")
-# all_accels_list_pd.to_csv(f"{result}_accel_{param_to_change}.csv", header=True, index=False)
-x = all_accels_list_pd["phase"].to_numpy()
-y = all_accels_list_pd["accel_mod"].to_numpy()
-delta_x = x[1:] - x[:-1]
-x_for_int = (x[1:] + x[:-1]) / 2
-y_for_int = (y[1:] + y[:-1]) / 2
-int_y = -np.cumsum(delta_x * y_for_int)
-plt.plot(x_for_int, int_y)
-plt.show()
+all_accels_list_pd.to_csv(f"{result}_accel_{param_to_change}.csv", header=True, index=False)
+'''
