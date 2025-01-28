@@ -113,6 +113,20 @@ removem;v(102)
 removem;i(l2)
 addm;v(3)-v(0)
 end
+var;no_current_source
+remove;b2
+remove;idc
+remove;i1
+add;lbog 0 1 0
+change;l2 3 0 {l2_mag}
+removem;@b2[phase]
+addm;@b1[g0]
+addm;@b1[gn]
+addm;@b1[gs]
+removem;v(0)-v(4)
+removem;v(4)-v(3)
+removem;v(102)
+end
 var;pulsed_no_b2
 change;idc 0 1 pulse(5e-6 {idc_mag} 2e-12 0 0 2e-12 4e-12)
 remove;b2

@@ -4,21 +4,23 @@ equivalent circuit to no_b2 kent circuit
 #PARAMS
 model,jj1
 level,1
-icrit_mag,1.0e-6
+icrit_mag,1.0e-7
 i1_phase,0
-i1_mag,1e-9
+i1_mag,0
 i1_freq,30e6
-idc_mag,1e-7
-l1_mag,1.25e-10
-l2_mag,1.25e-10
-l3_mag,1.25e-10
-ics1_mag,1.1e-6
+idc_mag,0
+l1_mag,3.3333333333e-9
+l2_mag,0.8333333333e-9
+l3_mag,1.8333333333e-9
+ics1_mag,1.6e-7
 phi1_mag,0
 tran_step,1e-13
-tran_stop,2e-10
+tran_stop,1e-9
 tran_start,0e-10
 maxdata,1024000
 filename,Kent_Equiv
+
+r1_mag,1e-5
 
 #MEASURABLES
 @b1[phase] i(l1) i(l2) i(l3) v(1)-v(0) v(2)-v(0) v(3)-v(2) v(101)
@@ -40,5 +42,17 @@ write {filename}.txt {measurables}
 .endc
 
 #VARIATIONS
+var;no_current_source
+remove;i1_mag
+remove;idc
+add;l0 0 1 0
+addm;i(l0)
+end
+var;no_cs_with_load
+remove;i1_mag
+remove;idc
+add;r1 0 1 {r1_mag}
+addm;i(l0)
+end
 
 #NOTES
