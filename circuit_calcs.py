@@ -35,7 +35,7 @@ def calc_lc_q(r, l, c, mode="series"):
 def calc_k(l1, l2, m):
     return m/np.sqrt(l1*l2)
 
-def calc_lj(ic, phi):
+def calc_lj(ic, phi=0):
     return phi0/(2*np.pi*ic)/np.cos(phi)
 
 def calc_lj_ibias(ic, ibias):  # incomplete
@@ -137,3 +137,34 @@ def calc_k_report(z1, z2, zm, freq):
 def calc_capacitance(A, d, k, w=0, h=0):
     if w*h != 0: A = w*h
     return k*cnst.epsilon_0*A/d
+    
+# fit fns (lmfit)  # model_name.fit(y_vals, x=x_vals, a=0, ...)
+def exp_decay(t, a, b, c):
+    return a*np.exp(-t/b)+c
+
+def sine_wave(t, a, freq, phase):
+    return a*np.sin(2*np.pi*freq*t + phase)
+
+def resistance_phase(phi, r, alpha):
+    return r/(1+alpha*np.cos(phi))
+
+def lorentzian(x, par0, par1, par2):  # linear case
+    # par0: amplitude, par1: res freq, par2: bw
+    return par0 / (1. + pow(((x - par1) / (par2 / 2.)), 2.))
+
+def inverse(x, a, b, c):
+    return a/(x-b)+c
+
+def exp_decay_alt(x, a, b, c):
+    return np.exp(-a*(x-b)) + c
+
+def exp_inverse(x, a, b, c, d):
+    return a*np.exp(-c / (x - b)) + d
+
+exp_decay_model = Model(exp_decay)
+exp_alt_model = Model(exp_decay_alt)
+sine_model = Model(sine_wave)
+rp_model = Model(resistance_phase)
+lorentz_model = Model(lorentzian)
+inverse_model = Model(inverse)
+exp_inverse_model = Model(exp_inverse)

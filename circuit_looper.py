@@ -6,14 +6,15 @@ from circuit_calcs import *
 # runner mode plots various variables in one circuit
 # looper mode plots change of results of one circuit due to change of params
 mode = "looper"  # "looper"  # 
-template = "kent"  # "parallel"  # 
-param_file = "params/kent_params_241101.txt"  # "params/parallel_params_240709.txt"  # 
-variation = "no_b2"  # "pulsed_no_b2"  # "add_idc"  # "biased_jj"  # 
+template = "kent"  # "kent_equiv"  # "parallel"  # 
+param_file = "params/kent_params_250128.txt"  # None  # "params/parallel_params_240709.txt"  # 
+variation = "no_b2"  # "no_current_source"  # "add_idc"  # "biased_jj"  # 
 results_to_watch = ["v(101)"]  # , "i(l0)", "i(l2)"]  # , "v(102)"]  # phase, leff, etc.
 
 # looper settings
 if mode == "looper":
-    param_to_change = "phi1_mag"  # "idc_mag"  # 
+    param_to_change = "phi1_mag"  # "l1_mag"  # "idc_mag"  # 
+    # param_list = np.linspace(0e-9, 2.0e-9, 21)
     param_list = np.linspace(0.9999999999*np.pi, 1.0000000001*np.pi, 21)  # np.linspace(0e-6, 7.5e-6, 151)  # 
     results_list = {}
     # all_accels_list = {"phase": [], "accel": [], "accel_mod": [], "init_val": []}
@@ -70,8 +71,8 @@ elif mode == "looper":
             plt.clf()
             # setup
             delta_t = (time_array[1] - time_array[0])
-            cap = cd.data["@b1[cap]"][0]
-            cond = cd.data["@b1[g0]"][0]
+            # cap = cd.data["@b1[cap]"][0]
+            # cond = cd.data["@b1[g0]"][0]
             
             '''
             phase_x = cd.data[result].to_numpy()  # "position"
@@ -109,6 +110,7 @@ elif mode == "looper":
     
     for result in results_to_watch:
         plt.plot(param_list, results_list[result], "x", label=f"{result}")
+
     plt.xlabel(f"{param_to_change}")
     plt.tight_layout()
     plt.grid()
@@ -153,4 +155,23 @@ elif mode == "looper":
 all_accels_list_pd = pd.DataFrame(all_accels_list)
 all_accels_list_pd = all_accels_list_pd.sort_values("phase")
 all_accels_list_pd.to_csv(f"{result}_accel_{param_to_change}.csv", header=True, index=False)
+'''
+
+# FIT zone
+'''
+plt.plot(param_list, results_list[result], "x", label=f"{result}")
+x_vals = param_list * 1.e9
+y_vals = results_list[result]
+model = exp_inverse_model  # exp_alt_model  # 
+model_fit = model.fit(y_vals, x=x_vals, a=1, b=2.057, c=0, d=0)
+plt.plot(param_list, model_fit.best_fit, label="Fit")
+
+plt.xlabel(f"{param_to_change}")
+plt.tight_layout()
+plt.grid()
+plt.legend()
+# plt.savefig(f"{result}_{param_to_change}.png")
+plt.show()
+
+print(model_fit.fit_report())
 '''
