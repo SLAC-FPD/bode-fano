@@ -137,3 +137,20 @@ plt.savefig(f"Leff_parameter_space_k{k}_R{r}.png")
 plt.show()
 
 print(calc_leff(lt, omega, r, pts[1], pts[0], k))
+
+# calc for parallel jjs
+theta1 = np.linspace(0, 2*np.pi, 11)
+theta1 = theta1[:-1]
+theta2 = np.linspace(0, 2*np.pi, 721)
+
+for theta in theta1:
+    total_l = np.cos(theta)*np.cos(theta2)/(np.cos(theta) + np.cos(theta2))
+    plt.plot(theta2, total_l, ".", label=f"theta1={theta / np.pi * 180}")
+
+plt.xlabel("Theta 2 value")
+plt.ylabel("Normalized L_J")
+plt.ylim(-10, 10)
+plt.grid()
+plt.legend()
+plt.tight_layout()
+plt.show()
