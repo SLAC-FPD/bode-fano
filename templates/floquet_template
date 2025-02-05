@@ -1,0 +1,70 @@
+#TEMPLATE
+floquet circuit
+
+#PARAMS
+model,jj1
+level,1
+icrit_mag,1.0e-7
+cpic_mag,0.7e-9
+vm_mag,16.5e-3
+i1_phase,0
+i1_mag,2e-5
+i1_freq,3.316e11
+idc_mag,0
+l0_mag,1e-7
+k1_mag,1
+l1_mag,1.e-13
+ics1_mag,1.6e-7
+phi1_mag,0
+ics2_mag,1.6e-7
+phi2_mag,0
+l2_mag,0
+l3_mag,0
+tran_step,1e-13
+tran_stop,1e-9
+tran_start,0e-7
+i1_max,0
+i2_mag,1.3e-7
+maxdata,1024000
+filename,Floquet
+
+r1_mag,10
+c1_mag,1e-8
+#MEASURABLES
+@b1[phase] @b1[cap] @b2[phase] i(l0) i(l1) i(l2) v(1)-v(0) v(3)-v(0) v(3)-v(2) v(101) v(102)
+
+#CIRCUIT
+Floquet circuit
+.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag})
+i1 0 3 ac sin({i1_phase} {i1_mag} {i1_freq})
+idc 0 3 {idc_mag}
+l0 3 0 {l0_mag}
+k1 l0 l1 {k1_mag}
+l1 0 1 {l1_mag}
+l2 0 2 {l2_mag}
+b1 1 4 101 {model} ics={ics1_mag} phi={phi1_mag}
+b2 2 4 102 {model} ics={ics2_mag} phi={phi2_mag}
+
+.tran {tran_step} {tran_stop} {tran_start} uic 
+.control
+devload all
+set maxdata={maxdata}
+run
+write {filename}.txt {measurables}
+.endc
+
+#VARIATIONS
+var;biased_jj
+add;l3 2 3 {l3_mag}
+add;l4 0 5 {l4_mag}
+add;k2 l3 l4 -1
+add;ibias 0 5 {ibias_mag}
+addm;i(l3)
+addm;i(l4)
+end
+
+#NOTES
+Floquet circuit (Current fed is linear)
+i1 0 3 ac pwl({tran_start} 0 {tran_stop} {i1_max})
+i1 0 3 ac sin({i1_phase} {i1_mag} {i1_freq})
+idc_mag,1.0339169242309647e-05
