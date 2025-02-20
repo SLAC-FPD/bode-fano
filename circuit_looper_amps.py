@@ -9,7 +9,7 @@ from scipy.optimize import fsolve
 mode = "looper"  # "looper"  # 
 template = "kent"
 param_file = "params/kent_params_250219.txt"  # None  # "params/parallel_params_240709.txt"  # 
-variation = ""  # "no_current_source"  # "add_idc"  # "biased_jj"  # 
+variation = "v_bias"  # "no_current_source"  # "add_idc"  # "biased_jj"  # 
 # results_to_watch = ["v(101)"]  # , "i(l0)", "i(l2)"]  # , "v(102)"]  # phase, leff, etc.
 
 lj = calc_lj(1.6e-7, 0)
