@@ -9,7 +9,7 @@ from scipy.optimize import fsolve
 mode = "looper"  # "looper"  # 
 template = "kent"
 param_file = "params/kent_params_250219.txt"  # None  # "params/parallel_params_240709.txt"  # 
-variation = "no_b2_v"  # "no_current_source"  # "add_idc"  # "biased_jj"  # 
+variation = ""  # "no_current_source"  # "add_idc"  # "biased_jj"  # 
 # results_to_watch = ["v(101)"]  # , "i(l0)", "i(l2)"]  # , "v(102)"]  # phase, leff, etc.
 
 lj = calc_lj(1.6e-7, 0)
@@ -21,14 +21,14 @@ if withcap: withcap_ = "_withcap"
 
 # looper settings
 if mode == "looper":
-    lg = 3.5e-9
+    lg = 1.5e-9
     expected_phase = np.abs(fsolve(func, np.pi/2)[0])
     lj_ = calc_lj(1.6e-7, expected_phase)
     param_to_change = "k1_mag"  # "phi1_mag"
     param_list = np.linspace(0.001, 0.999, 999)
     expected_list = {"jj_phase": np.ones(len(param_list))*expected_phase, "ltot": [], "jj_current": []}
     results_list = {"jj_phase": [], "current_amplitude": [], "ltot": [], "phase_diff": [], "jj_current": []}
-
+    
 # Settings end, begin simulating results
 
 # make CircuitData object
