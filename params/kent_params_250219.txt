@@ -1,0 +1,22 @@
+#PARAMS
+model,jj1
+level,1
+icrit_mag,1.0e-7
+i1_phase,0
+i1_mag,1e-9
+i1_freq,159154943091.89536
+l0_mag,1e-9
+k1_mag,0.7071067811865475
+l1_mag,5e-9
+ics1_mag,1.6e-7
+phi1_mag,3.1415926539039525
+l2_mag,0
+cpic_mag,0
+tran_step,5e-14
+tran_stop,1e-9
+tran_start,0
+maxdata,1024000
+filename,Kent
+
+#MEASURABLES
+@b1[phase] i(l0) v(1)-v(0) i(l2)
