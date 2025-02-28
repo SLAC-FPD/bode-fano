@@ -9,12 +9,12 @@ i1_phase,0
 i1_mag,1e-9
 i1_freq,30e6
 idc_mag,1e-7
-l0_mag,3e-12
-k1_mag,1
 l1_mag,3e-12
+k1_mag,1
+l2_mag,3e-12
 ics1_mag,1.1e-6
 phi1_mag,0
-l2_mag,1e-10
+l3_mag,1e-10
 tran_step,1e-11
 tran_stop,6e-7
 tran_start,1e-7
@@ -23,7 +23,9 @@ filename,Kent
 
 cpic_mag,0.7e-9
 vm_mag,16.5e-3
-l3_mag,0
+rtype,1
+l0_mag,5e-10
+l4_mag,0
 i2_phase,0
 i2_mag,2e-5
 i2_freq,3e12
@@ -32,18 +34,18 @@ r1_mag,10
 c1_mag,1e-8
 
 #MEASURABLES
-@b1[cap] i(l0) i(l1) i(l2) v(0)-v(3) v(1)-v(0) v(2)-v(0) v(3)-v(2) v(101)
+@b1[cap] i(l1) i(l2) i(l3) v(0)-v(3) v(1)-v(0) v(2)-v(0) v(3)-v(2) v(101)
 
 #CIRCUIT
 Kent circuit
-.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag})
+.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag}, rtype={rtype})
 i1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
 idc 0 1 {idc_mag}
-l0 1 0 {l0_mag}
-k1 l0 l1 {k1_mag}
-l1 0 2 {l1_mag}
+l1 1 0 {l1_mag}
+k1 l1 l2 {k1_mag}
+l2 0 2 {l2_mag}
 b1 2 3 101 {model} ics={ics1_mag} phi={phi1_mag}
-l2 3 0 {l2_mag}
+l3 3 0 {l3_mag}
 .tran {tran_step} {tran_stop} {tran_start} uic 
 .control
 devload all
@@ -56,23 +58,35 @@ write {filename}.txt {measurables}
 var;no_source
 remove;i1
 remove;idc
-add;l3 1 0 {l3_mag}
+add;l4 1 0 {l3_mag}
 end
 var;v_bias_with_dc_bias
 remove;i1
 add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
-add;l3 0 4 {l3_mag}
+add;l4 0 4 {l4_mag}
 change;idc 4 0 {idc_mag}
-add;k2 l2 l3 {k2_mag}
-addm;i(l3)
+add;k2 l3 l4 {k2_mag}
+addm;i(l4)
 end
 var;v_bias_with_ac_bias
 remove;i1
 add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
-add;l3 0 4 {l3_mag}
+add;l4 0 4 {l4_mag}
 change;idc 4 0 ac sin({i2_phase} {i2_mag} {i2_freq})
-add;k2 l2 l3 {k2_mag}
-addm;i(l3)
+add;k2 l3 l4 {k2_mag}
+addm;i(l4)
+end
+var;v_bias_cancel
+remove;i1
+add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+add;l4 0 4 {l4_mag}
+add;l0 1 5 {l0_mag}
+change;l1 5 0 {l1_mag}
+change;idc 4 0 {idc_mag}
+add;k2 l3 l4 {k2_mag}
+addm;v(0)-v(5)
+addm;v(5)-v(1)
+addm;i(l4)
 end
 var;v_bias
 remove;i1
@@ -81,28 +95,28 @@ add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
 end
 var;parallel_c
 add;c1 2 4 {c1_mag}
-add;l3 4 3 {l3_mag}
-addm;i(l3)
+add;l4 4 3 {l4_mag}
+addm;i(l4)
 end
 var;parallel_r
 add;r1 2 4 {r1_mag}
-add;l3 4 3 {l3_mag}
-addm;i(l3)
+add;l4 4 3 {l4_mag}
+addm;i(l4)
 end
 var;parallel_rc
 add;c1 2 3 {c1_mag}
 add;r1 2 4 {r1_mag}
-add;l3 4 3 {l3_mag}
-addm;i(l3)
+add;l4 4 3 {l4_mag}
+addm;i(l4)
 end
 var;biased_jj
-add;l3 0 4 {l3_mag}
-add;k2 l2 l3 {k2_mag}
+add;l4 0 4 {l4_mag}
+add;k2 l3 l4 {k2_mag}
 add;idc2 0 4 {idc2_mag}
-addm;i(l3)
+addm;i(l4)
 var;two_jjs
 add;b2 3 4 102 {model} ics={ics2_mag} phi={phi2_mag}
-change;l2 4 0 {l2_mag}
+change;l3 4 0 {l3_mag}
 end
 
 #NOTES
