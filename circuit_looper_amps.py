@@ -9,26 +9,28 @@ from scipy.optimize import fsolve
 mode = "looper"  # "looper"  # 
 template = "kent"
 param_file = "params/kent_params_250219.txt"  # None  # "params/parallel_params_240709.txt"  # 
-variation = "v_bias"  # "no_current_source"  # "add_idc"  # "biased_jj"  # 
+variation = "v_bias_with_dc_bias"  # "no_current_source"  # "add_idc"  # "biased_jj"  # 
 # results_to_watch = ["v(101)"]  # , "i(l0)", "i(l2)"]  # , "v(102)"]  # phase, leff, etc.
 
 lj = calc_lj(1.6e-7, 0)
 func = lambda phi: lg/lj*np.sin(np.pi - phi) + phi + np.pi
 
-withcap = True
-withcap_ = ""
-if withcap: withcap_ = "_withcap"
+withcap = True  # True
+nornoc = False  # False
+tagname = ""  # ""  # 
+if withcap: tagname = "_withcap"
+elif nornoc: tagname = "_nornoc"
 
 # looper settings
 if mode == "looper":
-    lg = 1.5e-9
+    lg = 2.06e-9  # calc_lj(1.6e-7, 0)  # 
     expected_phase = np.abs(fsolve(func, np.pi/2)[0])
     lj_ = calc_lj(1.6e-7, expected_phase)
     param_to_change = "k1_mag"  # "phi1_mag"
     param_list = np.linspace(0.001, 0.999, 999)
     expected_list = {"jj_phase": np.ones(len(param_list))*expected_phase, "ltot": [], "jj_current": []}
     results_list = {"jj_phase": [], "current_amplitude": [], "ltot": [], "phase_diff": [], "jj_current": []}
-    
+
 # Settings end, begin simulating results
 
 # make CircuitData object
@@ -38,22 +40,26 @@ cd.simulation_cycle(template, param_file, variation)  # needed to initialize
 if mode == "runner":
     print("Not used")
     
-elif mode == "looper":  # fixed vals: l0_mag, i1_freq, ics1_mag, cpic_mag
+elif mode == "looper":  # fixed vals: l1_mag, i1_freq, ics1_mag, cpic_mag
     t1 = time.time()
     for param in param_list:
         print(param)
         cd.change_param(param_to_change, param)
         l2_val = lg/(1 - param**2)
-        cd.change_param("l1_mag", l2_val)
+        cd.change_param("l2_mag", l2_val)
+        if variation == "v_bias":
+            cd.change_param("l3_mag", 0)
+            cd.change_param("phi1_mag", np.pi)
         if withcap: cd.change_param("cpic_mag", 0.7e-9)
+        elif nornoc: cd.change_param("rtype", 0)
         cd.simulation_cycle(template, param_file, variation)
         time_array = cd.data["time"]
         jj_phase = cd.data["v(101)"].to_numpy()[19800:]  # final value only for now
         results_list["jj_phase"].append(np.average(jj_phase))
         time_ = time_array.to_numpy()[19800:]
-        current = cd.data["i(l0)"].to_numpy()[19800:]
+        current = cd.data["i(l1)"].to_numpy()[19800:]
         voltage = cd.data["v(1)-v(0)"].to_numpy()[19800:]
-        jj_current = cd.data["i(l2)"].to_numpy()[19800:]
+        jj_current = cd.data["i(l3)"].to_numpy()[19800:]
         results_list["jj_current"].append(np.average(jj_current))
         expected_jj_current = 1.6e-7 * np.sin(expected_phase)
         expected_list["jj_current"].append(expected_jj_current)
@@ -91,7 +97,7 @@ for result in results_list:
     plt.legend()
     plt.grid()
     plt.tight_layout()
-    plt.savefig(f"lg_{lg}_{result}{withcap_}.png")
+    plt.savefig(f"250219_Graphs/lg_{lg}_{result}{tagname}.png")
     plt.show()
     plt.cla()
     
