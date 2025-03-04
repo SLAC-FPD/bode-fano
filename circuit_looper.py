@@ -5,7 +5,7 @@ from circuit_calcs import *
 
 # runner mode plots various variables in one circuit
 # looper mode plots change of results of one circuit due to change of params
-mode = "runner"  # "looper"  # 
+mode = "looper"  # "runner"  # 
 template = "kent"  # "floquet"  # "kent_equiv"  # "parallel"  # 
 param_file = "params/kent_params_250225.txt"  # None  # "params/parallel_params_240709.txt"  # 
 variation = "v_bias_cancel"  # "no_source"  # None  # "no_b2"  # "add_idc"  # "biased_jj"  # 
@@ -13,10 +13,11 @@ results_to_watch = ["v(101)"]  # , "v(102)"]  # , "i(l2)"]  # , "i(l1)", "i(l2)"
 
 # looper settings
 if mode == "looper":
-    param_to_change = "phi1_mag"  # "l1_mag"  # "idc_mag"  # 
-    # param_list = np.linspace(0, phi0*1.e10, 181)
-    param_list = [np.pi]  # np.linspace(0.9999999999*np.pi, 1.0000000001*np.pi, 3)  # np.linspace(0e-5, 4e-6, 401)  # 0, 2*np.pi, 361)  # 
+    param_to_change = "idc_mag"  # "phi1_mag"  # "l1_mag"  # 
+    param_list = np.linspace(1.0339169242309647e-05 * 0.998, 1.0339169242309647e-05 * 1.002, 401)
+    # param_list = [np.pi]  # np.linspace(0.9999999999*np.pi, 1.0000000001*np.pi, 3)  # np.linspace(0e-5, 4e-6, 401)  # 0, 2*np.pi, 361)  # 
     results_list = {}
+    results_list = {"ltot": [], "phase_diff": []}
     # all_accels_list = {"phase": [], "accel": [], "accel_mod": [], "init_val": []}
     for result in results_to_watch:
         results_list[result] = []
@@ -61,6 +62,30 @@ elif mode == "looper":
         cd.change_param(param_to_change, param)
         cd.simulation_cycle(template, param_file, variation)
         time_array = cd.data["time"]
+        # '''
+        current = cd.data["i(l1)"].to_numpy()[19800:]
+        voltage = cd.data["v(1)-v(0)"].to_numpy()[19800:]
+        # jj_current = cd.data["i(l3)"].to_numpy()[19800:]
+        # results_list["jj_current"].append(np.average(jj_current))
+        # expected_jj_current = 1.6e-7 * np.sin(expected_phase)
+        # expected_list["jj_current"].append(expected_jj_current)
+        omega = 1e12
+        current_amp = (np.max(current) - np.min(current))/2
+        voltage_amp = (np.max(voltage) - np.min(voltage))/2
+        # results_list["current_amplitude"].append(current_amp)
+        cur_phase = time_array[np.where(current == np.max(current))[0][0]]
+        vol_phase = time_array[np.where(voltage == np.max(voltage))[0][0]]
+        phase_diff = (cur_phase - vol_phase)*omega
+        # print(phase_diff)
+        if phase_diff < -np.pi: phase_diff += 2*np.pi
+        elif phase_diff > np.pi: phase_diff += -2*np.pi
+        results_list["phase_diff"].append(phase_diff)
+        # expected_ltot = 1e-9*(1 - param**2)*(lg + lj_)/(lg + (1-param**2)*lj_)
+        # expected_list["ltot"].append(expected_ltot)
+        ltot = voltage_amp / current_amp / omega
+        # if phase_diff < 0: ltot = -ltot
+        results_list["ltot"].append(ltot)
+        # '''
         for result in results_to_watch:
             result_value_ = cd.data[result].to_numpy()  # final value only for now
             result_value = np.average(result_value_[9900:])  # CHANGE THIS
@@ -121,6 +146,33 @@ elif mode == "looper":
     plt.savefig(f"{result}_{param_to_change}.png")
     # plt.clf()
     plt.show()
+    
+    # '''
+    plt.plot(param_list, results_list["ltot"], "x")  # , label=f"{result}")
+    plt.xlabel(f"DC Current Bias (A)")
+    plt.ylabel("Total Inductance Magnitude (H)")
+    plt.grid()
+    # plt.legend()
+    plt.yscale("log")
+    plt.tight_layout()
+    plt.savefig(f"{result}_ltot_amps.png")
+    # plt.clf()
+    plt.show()
+    # '''
+    
+    # '''
+    plt.plot(param_list, results_list["phase_diff"], ".")  # , label=f"{result}")
+    plt.xlabel(f"DC Current Bias (A)")
+    plt.ylabel("Current-Voltage Phase difference (rad)")
+    plt.grid()
+    # plt.legend()
+    plt.yscale("linear")
+    plt.tight_layout()
+    plt.savefig(f"{result}_ltot_phase_diff.png")
+    # plt.clf()
+    plt.show()
+    # '''
+    
     '''
     plt.plot(all_accels_list["phase"], all_accels_list["accel"], "x", label="Acceleration")
     plt.plot(all_accels_list["phase"], all_accels_list["accel_mod"], "x", label="Acceleration Mod")
@@ -153,6 +205,7 @@ elif mode == "looper":
     plt.show()
     '''
 
+'''
 current = cd.data["i(l1)"].to_numpy()
 current = current[19800:]
 voltage = cd.data["v(1)-v(0)"].to_numpy()
@@ -192,7 +245,7 @@ phase_diff = (cur_phase - vol_phase) % period / period * 2 * np.pi
 if phase_diff > np.pi: phase_diff = phase_diff - 2 * np.pi
 
 print(f"EFFECTIVE INDUCTANCE MAGNITUDE: {ltot}, PHASE LAG: {phase_diff}\n")
-
+'''
 
 # save collected data
 '''
