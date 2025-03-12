@@ -1,0 +1,115 @@
+#TEMPLATE
+inductance cancelling circuit
+
+#PARAMS
+i1_phase,0
+i1_mag,1e-9
+i1_freq,159154.94309189536
+
+la_mag,1e-8
+lb_mag,1e-12
+k0_mag,1
+l0_mag,5e-10
+
+l1_mag,5e-10
+l2_mag,2.1178582977171555e-09
+k1_mag,0.253144227664784
+
+model,jj1
+level,1
+icrit_mag,1.6e-7
+cpic_mag,0.7e-9
+rtype,1
+vm_mag,16.5e-3
+
+ics1_mag,1.6e-7
+phi1_mag,0
+r1_mag,1e5
+c1_mag,2.057e-10
+
+l3_mag,1e-13
+l4_mag,1e-7
+k2_mag,1
+idc_mag,1.0339169242309647e-05
+
+tran_step,1e-12
+tran_stop,1e-9
+tran_start,0e-9
+maxdata,1024000
+filename,IndCancel
+
+#MEASURABLES
+i(la) i(lb) i(l2) i(l4) v(0)-v(6) v(1)-v(0) v(2)-v(1) v(0)-v(2) v(101)
+
+
+#CIRCUIT
+Inductance cancelling circuit
+.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag})
+
+i1 0 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+la 6 0 {la_mag}
+k0 la lb {k0_mag}
+lb 0 1 {lb_mag}
+
+l0 1 2 {l0_mag}
+l1 2 0 {l1_mag}
+k1 l1 l2 {k1_mag}
+l2 0 3 {l2_mag}
+
+b1 3 4 101 {model} ics={ics1_mag} phi={phi1_mag}
+l3 4 0 {l3_mag}
+k2 l3 l4 {k2_mag}
+l4 0 5 {l4_mag}
+idc 5 0 {idc_mag}
+
+.tran {tran_step} {tran_stop} {tran_start} uic 
+.control
+devload all
+set maxdata={maxdata}
+run
+write {filename}.txt {measurables}
+.endc
+
+
+#VARIATIONS
+var;add_jj_r
+add;r1 3 4 {r1_mag}
+end
+
+var;add_jj_c
+add;c1 3 4 {c1_mag}
+end
+
+var;add_jj_rc
+add;r1 3 4 {r1_mag}
+add;c1 3 4 {c1_mag}
+end
+
+var;aux_measurables
+addm;@b1[cap]
+addm;i(l0)
+addm;i(l1)
+addm;i(l3)
+addm;v(0)-v(3)
+addm;v(3)-v(4)
+addm;v(4)-v(0)
+addm;v(0)-v(5)
+end
+
+var;coupled_voltage_source
+remove;i1
+add;v1 0 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+
+var;straight_voltage_source
+remove;la
+remove;lb
+remove;k0
+removem;v(0)-v(6)
+add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+
+#NOTES
+Splitting this out to make a concise inductance cancel circuit.
+"straight_voltage_source" is the original circuit that showed that inductance could be cancelled.
+"add_jj_r" connects a resistor in parallel to the JJ for study purposes.
+"add_jj_c" connects a capacitor in parallel to the JJ for study purposes.
+"add_jj_rc" adds both in parallel.
