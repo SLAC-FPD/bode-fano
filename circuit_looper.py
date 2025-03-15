@@ -5,16 +5,16 @@ from circuit_calcs import *
 
 # runner mode plots various variables in one circuit
 # looper mode plots change of results of one circuit due to change of params
-mode = "looper"  # "runner"  # 
-template = "kent"  # "floquet"  # "kent_equiv"  # "parallel"  # 
-param_file = "params/kent_params_250225.txt"  # None  # "params/parallel_params_240709.txt"  # 
-variation = "v_bias_cancel"  # "no_source"  # None  # "no_b2"  # "add_idc"  # "biased_jj"  # 
+mode = "runner"  # "looper"  # 
+template = "ind_cancel"  # "kent"  # "floquet"  # "kent_equiv"  # "parallel"  # 
+param_file = None  # "params/kent_params_250303.txt"  # None  # "params/parallel_params_240709.txt"  # 
+variation = None  # "v_bias_cancel"  # "no_source"  # "no_b2"  # "add_idc"  # "biased_jj"  # 
 results_to_watch = ["v(101)"]  # , "v(102)"]  # , "i(l2)"]  # , "i(l1)", "i(l2)"]  # , "i(l0)"]  #   # phase, leff, etc.
 
 # looper settings
 if mode == "looper":
     param_to_change = "idc_mag"  # "phi1_mag"  # "l1_mag"  # 
-    param_list = np.linspace(1.0339169242309647e-05 * 0.998, 1.0339169242309647e-05 * 1.002, 401)
+    param_list = np.linspace(1.0339169242309647e-05 * 0.0, 1.0339169242309647e-05 * 2.0, 41)
     # param_list = [np.pi]  # np.linspace(0.9999999999*np.pi, 1.0000000001*np.pi, 3)  # np.linspace(0e-5, 4e-6, 401)  # 0, 2*np.pi, 361)  # 
     results_list = {}
     results_list = {"ltot": [], "phase_diff": []}
@@ -32,9 +32,9 @@ if mode == "runner":
     cd.simulation_cycle(template, param_file, variation)  # needed to initialize
     # cd.change_param("phi1_mag", -4.8)
     # cd.change_param("idc_mag", 4e-6)  # avg to 4.5e-6
-    # cd.change_param("tran_step", 1e-13)
-    # cd.change_param("tran_stop", 1e-10)
-    # cd.change_param("tran_start", 0e-10)
+    cd.change_param("tran_step", 0.5e-9)
+    cd.change_param("tran_stop", 1e-5)
+    cd.change_param("tran_start", 0e-5)
     cd.change_param("i1_max", 2*np.pi*cd.params["i1_freq"]*cd.params["tran_stop"])
     cd.simulation_cycle(template, param_file, variation)
     time_array = cd.data["time"]
@@ -62,14 +62,14 @@ elif mode == "looper":
         cd.change_param(param_to_change, param)
         cd.simulation_cycle(template, param_file, variation)
         time_array = cd.data["time"]
-        # '''
+        '''
         current = cd.data["i(l1)"].to_numpy()[19800:]
         voltage = cd.data["v(1)-v(0)"].to_numpy()[19800:]
         # jj_current = cd.data["i(l3)"].to_numpy()[19800:]
         # results_list["jj_current"].append(np.average(jj_current))
         # expected_jj_current = 1.6e-7 * np.sin(expected_phase)
         # expected_list["jj_current"].append(expected_jj_current)
-        omega = 1e12
+        omega = 1e8  # 1e12 for 0225 1e10 for 0303
         current_amp = (np.max(current) - np.min(current))/2
         voltage_amp = (np.max(voltage) - np.min(voltage))/2
         # results_list["current_amplitude"].append(current_amp)
@@ -85,7 +85,7 @@ elif mode == "looper":
         ltot = voltage_amp / current_amp / omega
         # if phase_diff < 0: ltot = -ltot
         results_list["ltot"].append(ltot)
-        # '''
+        '''
         for result in results_to_watch:
             result_value_ = cd.data[result].to_numpy()  # final value only for now
             result_value = np.average(result_value_[9900:])  # CHANGE THIS
@@ -205,21 +205,21 @@ elif mode == "looper":
     plt.show()
     '''
 
-'''
-current = cd.data["i(l1)"].to_numpy()
-current = current[19800:]
-voltage = cd.data["v(1)-v(0)"].to_numpy()
-voltage = voltage[19800:]
-voltage_l0 = cd.data["v(5)-v(1)"].to_numpy()[19800:]
-voltage_l1 = cd.data["v(0)-v(5)"].to_numpy()[19800:]
-time_array2 = time_array[19800:]
+
+current = cd.data["i(lb)"].to_numpy()[5000:]
+# current = cd.data["i(la)"].to_numpy()[5000:]
+voltage = cd.data["v(1)-v(0)"].to_numpy()[5000:]
+# voltage = cd.data["v(0)-v(6)"].to_numpy()[5000:]
+voltage_l0 = cd.data["v(2)-v(1)"].to_numpy()[5000:]
+voltage_l1 = cd.data["v(0)-v(2)"].to_numpy()[5000:]
+time_array2 = time_array[5000:]
 fig, ax1 = plt.subplots()
 
 ax1.set_xlabel('Time (s)')
 ax1.set_ylabel('Voltage (V)')
-ax1.plot(time_array2, voltage_l0, color="lightblue", label="L0")
-ax1.plot(time_array2, voltage_l1, color="cyan", label="L1")
-ax1.plot(time_array2, voltage, color="blue")
+ax1.plot(time_array2, voltage_l0, color="lightblue", label="Inductance to cancel")
+ax1.plot(time_array2, voltage_l1, color="cyan", label="Inductance cancelling device")
+ax1.plot(time_array2, voltage, color="blue", label="Coupled-in voltage")
 ax1.tick_params(axis='y', labelcolor="blue")
 
 ax2 = ax1.twinx()
@@ -227,15 +227,17 @@ ax2.set_ylabel('Current (A)')
 ax2.plot(time_array2, current, color="orange")
 ax2.tick_params(axis='y', labelcolor="orange")
 
+ax1.legend()
+
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
 plt.grid()
-plt.savefig(f"current_and_voltage_250225.png")
+plt.savefig(f"current_and_voltage_250314.png")
 plt.show()
 
 cur_amp = (np.max(current) - np.min(current)) / 2
 vol_amp = (np.max(voltage) - np.min(voltage)) / 2
 print(f"\nCURRENT AMPLITUDE: {cur_amp}, VOLTAGE AMPLITUDE: {vol_amp}")
-omega = 1e12
+omega = cd.params["i1_freq"] * 2 * np.pi
 ltot = vol_amp / (cur_amp * omega)
 
 period = (2*np.pi) / omega
@@ -245,7 +247,6 @@ phase_diff = (cur_phase - vol_phase) % period / period * 2 * np.pi
 if phase_diff > np.pi: phase_diff = phase_diff - 2 * np.pi
 
 print(f"EFFECTIVE INDUCTANCE MAGNITUDE: {ltot}, PHASE LAG: {phase_diff}\n")
-'''
 
 # save collected data
 '''
