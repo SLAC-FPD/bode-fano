@@ -44,7 +44,7 @@ i(la) i(lb) i(l2) i(l4) v(0)-v(6) v(1)-v(0) v(2)-v(1) v(0)-v(2) v(101)
 
 #CIRCUIT
 Inductance cancelling circuit
-.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag})
+.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag}, rtype={rtype})
 
 i1 0 6 ac sin({i1_phase} {i1_mag} {i1_freq})
 la 6 0 {la_mag}
