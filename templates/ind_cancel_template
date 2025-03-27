@@ -32,6 +32,10 @@ l4_mag,1e-7
 k2_mag,1
 idc_mag,1.0339169242309647e-05
 
+lc_mag,2.5e-9
+ld_mag,0
+k3_mag,1
+
 tran_step,1e-12
 tran_stop,1e-9
 tran_start,0e-9
@@ -83,6 +87,13 @@ end
 var;add_jj_rc
 add;r1 3 4 {r1_mag}
 add;c1 3 4 {c1_mag}
+end
+
+var;couple_out
+add;lc 0 7 {lc_mag}
+add;ld 7 0 {ld_mag}
+add;k3 l0 lc {k3_mag}
+addm;i(ld)
 end
 
 var;aux_measurables
