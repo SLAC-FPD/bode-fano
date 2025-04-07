@@ -1,16 +1,16 @@
 #PARAMS
 i1_phase,0
 i1_mag,1e-9
-i1_freq,159154.94309189536
+i1_freq,15915.494309189536
 
-la_mag,5e-12
-lb_mag,5e-12
-k0_mag,1
-l0_mag,5e-10
+la_mag,3.75e-10
+lb_mag,3.75e-10
+k0_mag,0.5773502691896257
+l0_mag,0e-10
 
 l1_mag,5e-10
 l2_mag,2.1178582977171555e-09
-k1_mag,0.5773502691896257
+k1_mag,0.253144227664784
 
 model,jj1
 level,1
@@ -29,8 +29,8 @@ l4_mag,1e-7
 k2_mag,1
 idc_mag,1.0339169242309647e-05
 
-lc_mag,5e-12
-ld_mag,5e-12
+lc_mag,3.75e-10
+ld_mag,3.75e-10
 lout_mag,0
 k3_mag,0.5773502691896257
 
