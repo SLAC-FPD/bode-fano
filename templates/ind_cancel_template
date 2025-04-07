@@ -4,7 +4,7 @@ inductance cancelling circuit
 #PARAMS
 i1_phase,0
 i1_mag,1e-9
-i1_freq,159154.94309189536
+i1_freq,15915.494309189536
 
 la_mag,1e-8
 lb_mag,1e-12
@@ -32,9 +32,10 @@ l4_mag,1e-7
 k2_mag,1
 idc_mag,1.0339169242309647e-05
 
-lc_mag,2.5e-9
-ld_mag,0
+lc_mag,5e-10
+ld_mag,5e-10
 k3_mag,1
+lout_mag,0
 
 tran_step,1e-12
 tran_stop,1e-9
@@ -76,6 +77,18 @@ write {filename}.txt {measurables}
 
 
 #VARIATIONS
+var;couple_out
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k2_mag}
+add;lout 8 0 {lout_mag}
+change;l1 2 7 {l1_mag}
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;i(lout)
+removem;v(0)-v(2)
+end
+
 var;add_jj_r
 add;r1 3 4 {r1_mag}
 end
@@ -87,13 +100,6 @@ end
 var;add_jj_rc
 add;r1 3 4 {r1_mag}
 add;c1 3 4 {c1_mag}
-end
-
-var;couple_out
-add;lc 0 7 {lc_mag}
-add;ld 7 0 {ld_mag}
-add;k3 l0 lc {k3_mag}
-addm;i(ld)
 end
 
 var;aux_measurables
