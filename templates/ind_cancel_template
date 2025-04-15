@@ -80,7 +80,7 @@ write {filename}.txt {measurables}
 var;couple_out
 add;lc 0 7 {lc_mag}
 add;ld 0 8 {ld_mag}
-add;k3 lc ld {k2_mag}
+add;k3 lc ld {k3_mag}
 add;lout 8 0 {lout_mag}
 change;l1 2 7 {l1_mag}
 addm;v(7)-v(2)
