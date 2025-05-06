@@ -20,7 +20,7 @@ level,1
 icrit_mag,1.6e-7
 cpic_mag,0.7e-9
 rtype,1
-vm_mag,16.5e-3
+vm_mag,1.65e-3
 
 ics1_mag,1.6e-7
 phi1_mag,0
