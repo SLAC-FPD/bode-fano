@@ -5,18 +5,18 @@ from circuit_calcs import *
 
 # runner mode plots various variables in one circuit
 # looper mode plots change of results of one circuit due to change of params
-mode = "runner"  # "looper"  # 
+mode = "runner"  # "looper"  # "runner"  # 
 template = "ind_cancel"  # "kent"  # "floquet"  # "kent_equiv"  # "parallel"  # 
-param_file = "params/ind_cancel_params_250402.txt"  # None  # "params/kent_params_250303.txt"  # 
+param_file = "params/ind_cancel_params_250430.txt"  # None  # "params/kent_params_250303.txt"  # 
 variation = "couple_out"  # None  # "biased_jj"  # "v_bias_cancel"  # "no_source"  # "no_b2"  # 
-results_to_watch = ["v(101)", "i(la)", "i(lb)", "i(lout)"]  # , "v(102)"]  # , "i(l2)"]  # , "i(l1)", "i(l2)"]  # , "i(l0)"]  #   # phase, leff, etc.
+results_to_watch = ["v(101)"]  # , "i(la)", "i(lb)", "i(lout)"]  # , "v(102)"]  # , "i(l2)"]  # , "i(l1)", "i(l2)"]  # , "i(l0)"]  #   # phase, leff, etc.
 save_results = False
 
 # looper settings
 if mode == "looper":
-    param_to_change = "idc_mag"  # "phi1_mag"  # "l1_mag"  # 
-    param_list = np.linspace(1.0339169242309647e-05 * 0.998, 1.0339169242309647e-05 * 1.002, 101)
-    # param_list = [np.pi]  # np.linspace(0.9999999999*np.pi, 1.0000000001*np.pi, 3)  # np.linspace(0e-5, 4e-6, 401)  # 0, 2*np.pi, 361)  # 
+    param_to_change = "idc_mag"  # "lb_mag"  # "phi1_mag"  # "l1_mag"  # 
+    param_list = np.linspace(1.0339169242309647e-05 * 0.998, 1.0339169242309647e-05 * 1.002, 21)
+    # param_list = np.linspace(6.1e-10, 7e-10, 10)
     results_list = {param_to_change: param_list}
     results_list = {"ltot": [], "current_amp": [], "phase_diff": []}
     # all_accels_list = {"phase": [], "accel": [], "accel_mod": [], "init_val": []}
@@ -33,8 +33,8 @@ if mode == "runner":
     cd.simulation_cycle(template, param_file, variation)  # needed to initialize
     # cd.change_param("phi1_mag", -4.8)
     # cd.change_param("idc_mag", 4e-6)  # avg to 4.5e-6
-    cd.change_param("tran_step", 0.25e-9)
-    cd.change_param("tran_stop", 0.75e-4)
+    cd.change_param("tran_step", 0.25e-10)
+    cd.change_param("tran_stop", 0.75e-5)
     cd.change_param("tran_start", 0e-5)
     cd.change_param("i1_max", 2*np.pi*cd.params["i1_freq"]*cd.params["tran_stop"])
     cd.simulation_cycle(template, param_file, variation)
@@ -56,15 +56,15 @@ elif mode == "looper":
         if param == param_list[0]:
             cd.simulation_cycle(template, param_file, variation)  # needed to initialize
             # cd.change_param("i1_mag", 0)
-            cd.change_param("tran_step", 0.5e-9)
-            cd.change_param("tran_stop", 0.75e-4)  # 2e-10)
+            cd.change_param("tran_step", 0.5e-10)
+            cd.change_param("tran_stop", 0.75e-5)  # 2e-10)
             cd.change_param("tran_start", 0e-10)
             # cd.change_param("phi1_mag", 0)
         cd.change_param(param_to_change, param)
         cd.simulation_cycle(template, param_file, variation)
         time_array = cd.data["time"]
         
-        if template == "ind_cancel": current = cd.data["i(lout)"].to_numpy()[1000:]
+        if template == "ind_cancel" and variation == "couple_out": current = cd.data["i(lout)"].to_numpy()[1000:]
         else: current = cd.data["i(lb)"].to_numpy()[1000:]
         voltage = cd.data["v(1)-v(0)"].to_numpy()[1000:]
         # jj_current = cd.data["i(l3)"].to_numpy()[19800:]
@@ -182,7 +182,7 @@ elif mode == "looper":
     plt.ylabel("Current Amplitude in readout (A)")
     plt.grid()
     # plt.legend()
-    plt.yscale("linear")
+    plt.yscale("log")
     plt.tight_layout()
     plt.savefig(f"{result}_ltot_current_amp.png")
     # plt.clf()
@@ -222,19 +222,24 @@ elif mode == "looper":
     '''
 
 
-current = cd.data["i(lout)"].to_numpy()[1000:]
-# current = cd.data["i(la)"].to_numpy()[5000:]
+# current = cd.data["i(lout)"].to_numpy()[1000:]
 voltage = cd.data["v(1)-v(0)"].to_numpy()[1000:]
 # voltage = cd.data["v(0)-v(6)"].to_numpy()[5000:]
-# voltage_l0 = cd.data["v(2)-v(1)"].to_numpy()[1000:]
-# voltage_l1 = cd.data["v(0)-v(2)"].to_numpy()[1000:]
+if variation == "couple_out":
+    current = cd.data["i(lout)"].to_numpy()[1000:]
+    voltage_l0 = cd.data["v(0)-v(7)"].to_numpy()[1000:]
+    voltage_l1 = cd.data["v(7)-v(2)"].to_numpy()[1000:]
+else:
+    current = cd.data["i(la)"].to_numpy()[1000:]
+    voltage_l0 = cd.data["v(2)-v(1)"].to_numpy()[1000:]
+    voltage_l1 = cd.data["v(0)-v(2)"].to_numpy()[1000:]
 time_array2 = time_array[1000:]
 fig, ax1 = plt.subplots()
 
 ax1.set_xlabel('Time (s)')
 ax1.set_ylabel('Voltage (V)')
-# ax1.plot(time_array2, voltage_l0, color="lightblue", label="Inductance to cancel")
-# ax1.plot(time_array2, voltage_l1, color="cyan", label="Inductance cancelling device")
+ax1.plot(time_array2, voltage_l0, color="lightblue", label="Inductance to cancel")
+ax1.plot(time_array2, voltage_l1, color="cyan", label="Inductance cancelling device")
 ax1.plot(time_array2, voltage, color="blue", label="Coupled-in voltage")
 ax1.tick_params(axis='y', labelcolor="blue")
 

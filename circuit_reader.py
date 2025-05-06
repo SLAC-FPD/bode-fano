@@ -157,7 +157,7 @@ class CircuitData:
     def create_cirfile(self):  # reads data from params and circuit_text to create cirfile
         cirfile = open(f"{self.filename}.cir", "w")
         cirfile_text = ''.join([f"{key} {value}" for key,value in self.circuit_text.items()])
-        cirfile.write(cirfile_text.format(**self.params))  # unpack params dictionary and add all in circfile
+        cirfile.write(cirfile_text.format(**self.params))  # unpack params dictionary and add all in cirfile
         cirfile.close()
         
     def template_text(self):  # returns template currently in use
@@ -256,6 +256,11 @@ class CircuitData:
                 else: jj_inductances[node] = lj
             except IndexError: pass
         return jj_inductances
+        
+    def save_data(self, filename=None, location=""):  # with_circuit=False, 
+        self.data.to_csv(f"{location}{cd.filename}.csv", index=False)
+        # if with_circuit:
+        #     self.create_cirfile()
     
 class Measurable:
     def __init__(self, label, values, measurable_type, axis_label=None):

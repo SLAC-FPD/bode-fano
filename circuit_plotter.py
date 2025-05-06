@@ -5,12 +5,12 @@ from scipy.optimize import fsolve
 def official_plots():
     plt.rcParams.update({'font.size': 18, "text.usetex": False, "font.family": "sans-serif", "figure.figsize": "9, 7.5"})
     
-ltot_stable_phase = False
+ltot_stable_phase = True
 ltot_high = False
 ltot_low = False
 ltot_negative_tvi = False
 ltot_positive_tvi = False
-ltot_sweep_results = True
+ltot_sweep_results = False
 if any([ltot_stable_phase, ltot_high, ltot_low, ltot_negative_tvi, ltot_positive_tvi, ltot_sweep_results]):
     print("Using official plot settings.")
     official_plots()
@@ -41,6 +41,7 @@ if ltot_stable_phase:
     plt.ylim(0, 4.0)
     plt.locator_params(axis='y', nbins=4)
     # plt.grid()
+    plt.fill_between([0, 5e-9/lj], [np.pi/2, np.pi/2], [4.0, 4.0], facecolor='red', alpha=0.2)
     plt.tight_layout()
     plt.savefig("ltot_stable_phase.png")
     print("Plotted stable JJ phase a function of LG/LJ.")
@@ -70,9 +71,11 @@ if ltot_low:
         l2_list.append(l2(k_solution))
         plt.plot(k_linspace, ltot(k_linspace), ".", label=f"$L_G$ = {round(lg*1e9)/1e9}")
 
-    plt.plot([0, 1], [l1, l1], "k--")
-    plt.plot([0, 1], [-l1, -l1], "k--")
+    plt.plot([0, 1], [l1, l1], "r--")
+    # plt.plot([0, 1], [-l1, -l1], "r--")
     plt.ylim(-10*l1, 10*l1)
+    plt.locator_params(axis='y', nbins=5)
+    plt.fill_between([0, 1], [-10*l1, -10*l1], [l1, l1], facecolor='red', alpha=0.2)
     # plt.grid()
     plt.legend()
     plt.xlabel("Coupling Constant")
@@ -107,9 +110,11 @@ if ltot_high:
         l2_list.append(l2(k_solution))
         plt.plot(k_linspace, ltot(k_linspace), ".", label=f"$L_G$ = {round(lg*1e9, 1)/1e9}")
 
-    plt.plot([0, 1], [l1, l1], "k--")
-    plt.plot([0, 1], [-l1, -l1], "k--")
+    plt.plot([0, 1], [l1, l1], "r--")
+    # plt.plot([0, 1], [-l1, -l1], "r--")
     plt.ylim(-10*l1, 10*l1)
+    plt.locator_params(axis='y', nbins=5)
+    plt.fill_between([0, 1], [-10*l1, -10*l1], [l1, l1], facecolor='red', alpha=0.2)
     # plt.grid()
     plt.legend()
     plt.xlabel("Coupling Constant")
@@ -143,13 +148,13 @@ if ltot_negative_tvi:
 
     ax1.set_xlabel('Time (s)')
     ax1.set_ylabel('Voltage (V)')
-    ax1.plot(time_array2, voltage, color="dodgerblue")  # , label="Coupled-in voltage")
+    ax1.plot(time_array2, voltage, color="dodgerblue", linewidth=3.0)  # , label="Coupled-in voltage")
     ax1.tick_params(axis='y', labelcolor="dodgerblue")
 
     ax2 = ax1.twinx()
     ax2.set_ylabel('Current (A)')
-    ax2.plot(time_array2, current, "--", color="darkorange")
-    ax2.tick_params(axis='y', labelcolor="darkorange")
+    ax2.plot(time_array2, current, "--", color="firebrick", linewidth=3.0)
+    ax2.tick_params(axis='y', labelcolor="firebrick")
 
     ax1.locator_params(nbins=5)
     ax2.locator_params(nbins=5)
@@ -185,13 +190,13 @@ if ltot_positive_tvi:
 
     ax1.set_xlabel('Time (s)')
     ax1.set_ylabel('Voltage (V)')
-    ax1.plot(time_array2, voltage, color="dodgerblue")  # , label="Coupled-in voltage")
+    ax1.plot(time_array2, voltage, color="dodgerblue", linewidth=3.0)  # , label="Coupled-in voltage")
     ax1.tick_params(axis='y', labelcolor="dodgerblue")
 
     ax2 = ax1.twinx()
     ax2.set_ylabel('Current (A)')
-    ax2.plot(time_array2, current, "--", color="darkorange")
-    ax2.tick_params(axis='y', labelcolor="darkorange")
+    ax2.plot(time_array2, current, "--", color="firebrick", linewidth=3.0)
+    ax2.tick_params(axis='y', labelcolor="firebrick")
     
     ax1.locator_params(nbins=5)
     ax2.locator_params(nbins=5)
@@ -208,19 +213,31 @@ if ltot_sweep_results:
     ibias = data_pd["idc_mag"].to_numpy()
     ltot = data_pd["ltot"].to_numpy()
     phase = data_pd["v(101)"].to_numpy()
-    phase_bias = ibias / 1.0339169242309647e-05
+    phase_bias = ibias / 1.0339169242309647e-05 * np.pi
     l0 = 5e-10
 
+    plt.ylim(bottom=8.1e-11)
     plt.plot(ibias, ltot, ".")
     plt.plot([ibias[0], ibias[-1]], [l0, l0], "r--")
+    plt.fill_between([ibias[0], ibias[-1]], [8.1e-11, 8.1e-11], [5e-10, 5e-10], facecolor='red', alpha=0.2)
+    plt.xlabel("Bias Current (A)")
+    plt.locator_params(axis='x', nbins=4)
+    
+    '''
+    plt.plot(phase_bias, ltot, ".")
+    plt.plot([phase_bias[0], phase_bias[-1]], [l0, l0], "r--")
+    plt.fill_between([phase_bias[0], phase_bias[-1]], [8.1e-11, 8.1e-11], [5e-10, 5e-10], facecolor='red', alpha=0.2)
+    plt.xlabel("Phase bias (rad)")
+    plt.locator_params(axis='x', nbins=6)
+    '''
+    
     # plt.grid()
     # plt.legend()
-    plt.xlabel("Bias Current (A)")
+    
     plt.ylabel("Total Impedance Magnitude (H)")
     plt.yscale("log")
-    plt.locator_params(axis='x', nbins=4)
     plt.tight_layout()
-    plt.savefig("ltot_specific_sweep.png")
+    plt.savefig("ltot_specific_sweep.png)  # _phasebias.png")
     print("Plotted component voltages for biased values around pi.")
     plt.show()    
 
