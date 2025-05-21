@@ -3,11 +3,17 @@ from circuit_calcs import *
 
 cd = CircuitData()
 
+# to do list?
+'''
+- Send results to separate folder
+- Make loopable
+'''
+
 # what do we want to do
 mode = "runner"  # "looper"  # 
 template = "ind_cancel"  # "kent"  # "floquet"  # "kent_equiv"  # "parallel"  # 
 param_file = "params/ind_cancel_params_250430.txt"  # None  # 
-variation = "couple_out"  # None  # 
+variation = "couple_out_load"  # "couple_out"  # None  # 
 no_bodefano = False  # True  # 
 phase_bias = False
 
@@ -30,8 +36,8 @@ kout = kin  # these are free-ish parameters
 lin = l0/2/(1 - kin**2)
 lout = l0/2/(1 - kout**2)
 
-linput = 0  # not implemented yet!!
-loutput = 1e-8  # 1e-8  # output inductance in readout
+linput = 1e-8  # 0  # input inductance
+loutput = 1e-8  # 0  # output inductance in readout
 
 k = 0.2 # between coupled circuits
 cin = linput/lin
@@ -82,7 +88,7 @@ vbase_tag = "v(2)-v(1)"
 vcancel_tag = "v(0)-v(2)"
 phase_tag = "v(101)"
 
-if variation == "couple_out":
+if variation == "couple_out" or variation == "couple_out_load":
     cd.change_param("l0_mag", 0)
     cd.change_param("la_mag", lin)
     cd.change_param("lb_mag", lin)
@@ -90,9 +96,10 @@ if variation == "couple_out":
     cd.change_param("lc_mag", lout)
     cd.change_param("ld_mag", lout)
     cd.change_param("k3_mag", kout)
+    cd.change_param("lin_mag", linput)
     cd.change_param("lout_mag", loutput)
     vcancel_tag = "v(7)-v(2)"
-    iout_tag = "i(lout)"
+    iout_tag = "i(ld)"  # "i(lout)"
 
 if phase_bias:
     cd.change_param("phi1_mag", np.pi)
@@ -132,8 +139,8 @@ plt.tight_layout()
 # plt.savefig("ic_phase.png")
 plt.show()
 
-plt.plot(time_array, iin, zorder=2, label="Input")  #  - offset(iin)
-plt.plot(time_array, iout, zorder=1, label="Output")  #  - offset(iout)
+plt.plot(time_array, iin - offset(iin), zorder=2, label="Input")  #  - offset(iin)
+plt.plot(time_array, iout - offset(iout), zorder=1, label="Output")  #  - offset(iout)
 plt.legend()
 plt.xlabel("Time (s)")
 plt.ylabel("Output current (A)")
