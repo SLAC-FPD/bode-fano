@@ -36,6 +36,7 @@ lc_mag,5e-10
 ld_mag,5e-10
 k3_mag,1
 lout_mag,0
+lin_mag,0
 
 tran_step,1e-12
 tran_stop,1e-9
@@ -77,6 +78,21 @@ write {filename}.txt {measurables}
 
 
 #VARIATIONS
+var;couple_out_load
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k3_mag}
+add;lout 8 0 {lout_mag}
+add;lin 6 9 {lin_mag}
+change;la 9 0 {l1_mag}
+change;l1 2 7 {l1_mag}
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;i(ld)
+addm;i(lout)
+removem;v(0)-v(2)
+end
+
 var;couple_out
 add;lc 0 7 {lc_mag}
 add;ld 0 8 {ld_mag}
