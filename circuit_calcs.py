@@ -44,7 +44,23 @@ def calc_lj_ibias(ic, ibias):  # incomplete
     return phi0/(2*np.pi*ic)/np.cos(phi)
 
 def calc_fj(ic):
-    return ic/(4*np.pi*e)
+    return ic/(4*np.pi*cnst.e)
+    
+def calc_fj_jjparams(ic, cpic, phi=0):
+    return 1/(2*np.pi*np.sqrt(np.abs(calc_lj(ic, phi))*cpic*ic))
+
+# for sinusoidal fns.
+def amplitude(data):
+    return (np.max(data) - np.min(data))/2
+
+def offset(data):
+    return np.max(data) - (np.max(data) - np.min(data))/2
+    
+def dB2power(x):  # for vna
+    return pow(10, x / 10.)
+
+def power2dB(x):  # for vna
+    return 10 * np.log10(x)
 
 # rifkin circuit specific functions
 def calc_leff(lt, omega, r, l, cur_l, k=1, ls=0, stabilize_tank=True):
@@ -168,3 +184,68 @@ rp_model = Model(resistance_phase)
 lorentz_model = Model(lorentzian)
 inverse_model = Model(inverse)
 exp_inverse_model = Model(exp_inverse)
+
+def do_fft(time_, data, round_stepsize=True):
+    stepsize = time_[1] - time_[0]  # higher maxfreq when data is finer
+    # duration = time_[-1] - time_[0]  # better rbw when data is longer
+    if round_stepsize:  # only works when stepsize is 10^n
+        round_digit = round(-np.log10(time_[1]-time_[0]))
+        stepsize = round(stepsize, round_digit)
+    npts = len(time_)  # round(duration/stepsize)+1  # must be integer
+    
+    yf = np.abs(fft(data)[0:npts//2])  # fftshift(fft(y))
+    if npts % 2 == 0: xf = fftfreq(npts, stepsize)[0:npts//2]  # why do i need to do this separately???
+    else: xf = fftfreq(npts-1, stepsize)[0:npts//2]
+    
+    # fft will remove last point in fft because of how fftfreq works
+    #if npts == len(data):
+    #    xf = fftfreq(npts - 1, stepsize)  # [:-1]
+    #else: xf = fftfreq(len(data) - 1, stepsize)
+    #yf = fft(data[:-1])  # [:npts//2]
+    return xf, yf
+
+'''
+def round_value(value):  #, nine_count=3):  # don't do for > 1 yet
+    decimals_to_round = 0
+    value_mult = value
+    # nine_counts = 0  # rounds values like 9.99995
+    first_nonzero = False
+    finished_rounding = False
+    while not finished_rounding:
+        # current_digit_value = int(value_mult)%10
+        current_digit_value = round(value_mult)%10
+        #print("NextDigit", current_digit_value, value_mult, decimals_to_round)
+        #if nine_counts > nine_count:
+        #    print("TooManyNines")
+        #    decimals_to_round -= nine_count
+        #    finished_rounding = True
+        decimals_to_round += 1
+        value_mult = value_mult*10
+        if current_digit_value != 0:
+            first_nonzero = True
+        #    print("FirstNonzero")
+        #if current_digit_value == 9:
+        #    print("AddNineCount")
+        #    nine_counts += 1
+        if first_nonzero and current_digit_value == 0:
+        #    print("FinishedRounding")
+            finished_rounding = True
+        #input("...")
+    return round(value, decimals_to_round)
+'''
+
+'''
+l = 5e-10
+l0 = 2e-9
+k0 = 0.2
+l1 = 5e-10
+k1 = 0.253144227664784
+l2 = 2.1178582977171555e-09
+lj = calc_lj(1.6e-7, np.pi)
+
+l_to_cancel = l*(1-k0**2)
+ltot_jj = l2 * (1 - k1**2*l1/(l1 + l0*(1 - k0**2)))
+ltot_v = l * (1 - k0**2*l0/(l0 + l1*(1 - k1**2 * l2 / (l2 + lj))))
+l_to_cancel, ltot_jj, ltot_v
+
+'''

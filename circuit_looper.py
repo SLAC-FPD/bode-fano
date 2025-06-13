@@ -6,16 +6,16 @@ from circuit_calcs import *
 # runner mode plots various variables in one circuit
 # looper mode plots change of results of one circuit due to change of params
 mode = "runner"  # "looper"  # "runner"  # 
-template = "ind_cancel"  # "kent"  # "floquet"  # "kent_equiv"  # "parallel"  # 
-param_file = "params/ind_cancel_params_250430.txt"  # None  # "params/kent_params_250303.txt"  # 
-variation = "couple_out"  # None  # "biased_jj"  # "v_bias_cancel"  # "no_source"  # "no_b2"  # 
+template = "ind_cancel"  # "impedance_match"  # "kent"  # "floquet"  # "kent_equiv"  # "parallel"  # 
+param_file = "params/ind_cancel_params_250606.txt"  # None  #  # "params/kent_params_250303.txt"  # 
+variation = None  # "couple_out"  # "biased_jj"  # "v_bias_cancel"  # "no_source"  # "no_b2"  # 
 results_to_watch = ["v(101)"]  # , "i(la)", "i(lb)", "i(lout)"]  # , "v(102)"]  # , "i(l2)"]  # , "i(l1)", "i(l2)"]  # , "i(l0)"]  #   # phase, leff, etc.
 save_results = False
 
 # looper settings
 if mode == "looper":
     param_to_change = "idc_mag"  # "lb_mag"  # "phi1_mag"  # "l1_mag"  # 
-    param_list = np.linspace(1.0339169242309647e-05 * 0.998, 1.0339169242309647e-05 * 1.002, 21)
+    param_list = np.linspace(1.0339169242309647e-05 * 0.998, 1.0339169242309647e-05 * 1.002, 41)
     # param_list = np.linspace(6.1e-10, 7e-10, 10)
     results_list = {param_to_change: param_list}
     results_list = {"ltot": [], "current_amp": [], "phase_diff": []}
@@ -33,10 +33,10 @@ if mode == "runner":
     cd.simulation_cycle(template, param_file, variation)  # needed to initialize
     # cd.change_param("phi1_mag", -4.8)
     # cd.change_param("idc_mag", 4e-6)  # avg to 4.5e-6
-    cd.change_param("tran_step", 0.25e-10)
-    cd.change_param("tran_stop", 0.75e-5)
+    cd.change_param("tran_step", 0.5e-11)
+    cd.change_param("tran_stop", 1e-5)
     cd.change_param("tran_start", 0e-5)
-    cd.change_param("i1_max", 2*np.pi*cd.params["i1_freq"]*cd.params["tran_stop"])
+    # cd.change_param("i1_max", 2*np.pi*cd.params["i1_freq"]*cd.params["tran_stop"])
     cd.simulation_cycle(template, param_file, variation)
     time_array = cd.data["time"]
     for result in results_to_watch:
@@ -57,7 +57,7 @@ elif mode == "looper":
             cd.simulation_cycle(template, param_file, variation)  # needed to initialize
             # cd.change_param("i1_mag", 0)
             cd.change_param("tran_step", 0.5e-10)
-            cd.change_param("tran_stop", 0.75e-5)  # 2e-10)
+            cd.change_param("tran_stop", 0.75e-6)  # 2e-10)
             cd.change_param("tran_start", 0e-10)
             # cd.change_param("phi1_mag", 0)
         cd.change_param(param_to_change, param)
@@ -93,6 +93,7 @@ elif mode == "looper":
             result_value_ = cd.data[result].to_numpy()  # final value only for now
             result_value = np.average(result_value_[9900:])  # CHANGE THIS
             results_list[result].append(result_value)
+            '''
             plt.plot(time_array, cd.data[result], label=f"{result}, {param_to_change}={param}")
             plt.tight_layout()
             plt.grid()
@@ -104,7 +105,6 @@ elif mode == "looper":
             # cap = cd.data["@b1[cap]"][0]
             # cond = cd.data["@b1[g0]"][0]
             
-            '''
             phase_x = cd.data[result].to_numpy()  # "position"
             phase_v = (phase_x[:-1] - phase_x[1:])/delta_t  # "velocity"
             phase_for_v = phase_x[:-1]
