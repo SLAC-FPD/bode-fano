@@ -20,7 +20,7 @@ level,1
 icrit_mag,1.6e-7
 cpic_mag,0.7e-9
 rtype,1
-vm_mag,1.65e-3
+vm_mag,16.5e-3
 
 ics1_mag,1.6e-7
 phi1_mag,0
@@ -45,7 +45,7 @@ maxdata,1024000
 filename,IndCancel
 
 #MEASURABLES
-i(la) i(lb) i(l2) i(l4) v(0)-v(6) v(1)-v(0) v(2)-v(1) v(0)-v(2) v(101)
+i(la) i(lb) i(l2) i(l4) v(0)-v(6) v(1)-v(0) v(2)-v(1) v(0)-v(2) v(3)-v(0) v(4)-v(3) v(101)
 
 
 #CIRCUIT
@@ -78,6 +78,86 @@ write {filename}.txt {measurables}
 
 
 #VARIATIONS
+var;couple_out
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k3_mag}
+add;lout 8 0 {lout_mag}
+change;l1 2 7 {l1_mag}
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;v(0)-v(8)
+addm;i(ld)
+addm;i(lout)
+removem;v(0)-v(2)
+end
+
+var;couple_out_resonant
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k3_mag}
+add;lout 8 0 {lout_mag}
+change;l1 2 7 {l1_mag}
+remove;l0
+add;c0 1 2 {c1_mag}
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;v(0)-v(8)
+addm;i(ld)
+addm;i(lout)
+removem;v(0)-v(2)
+end
+
+var;couple_out_rout
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k3_mag}
+add;rout 8 0 {r1_mag}
+add;rin 0 9 {r1_mag}
+remove;i1
+add;v1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+change;l1 2 7 {l1_mag}
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;v(0)-v(8)
+addm;i(ld)
+removem;v(0)-v(2)
+end
+
+var;couple_out_resonant_rout
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k3_mag}
+add;rout 8 0 {r1_mag}
+add;rin 0 9 {r1_mag}
+remove;l0
+add;c0 1 2 {c1_mag}
+remove;i1
+add;v1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+change;l1 2 7 {l1_mag}
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;v(0)-v(8)
+addm;i(ld)
+removem;v(0)-v(2)
+end
+
+var;couple_out_rload
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k3_mag}
+add;lout 8 0 {lout_mag}
+add;rin 6 9 {lin_mag}
+change;la 9 0 {l1_mag}
+change;l1 2 7 {l1_mag}
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;v(0)-v(8)
+addm;i(ld)
+addm;i(lout)
+removem;v(0)-v(2)
+end
+
 var;couple_out_load
 add;lc 0 7 {lc_mag}
 add;ld 0 8 {ld_mag}
@@ -88,20 +168,21 @@ change;la 9 0 {l1_mag}
 change;l1 2 7 {l1_mag}
 addm;v(7)-v(2)
 addm;v(0)-v(7)
+addm;v(0)-v(8)
 addm;i(ld)
 addm;i(lout)
 removem;v(0)-v(2)
 end
 
-var;couple_out
+var;couple_out_open
 add;lc 0 7 {lc_mag}
 add;ld 0 8 {ld_mag}
 add;k3 lc ld {k3_mag}
-add;lout 8 0 {lout_mag}
 change;l1 2 7 {l1_mag}
 addm;v(7)-v(2)
 addm;v(0)-v(7)
-addm;i(lout)
+addm;v(0)-v(8)
+addm;i(ld)
 removem;v(0)-v(2)
 end
 
@@ -132,6 +213,7 @@ end
 var;coupled_voltage_source
 remove;i1
 add;v1 0 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+end
 
 var;straight_voltage_source
 remove;la
@@ -139,6 +221,35 @@ remove;lb
 remove;k0
 removem;v(0)-v(6)
 add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+end
+
+var;voltage_source_output
+add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+change;l1 2 6 {l1_mag}
+change;lb 0 7 {lb_mag}
+add;lout 7 0 {lout_mag}
+remove;i1
+removem;v(0)-v(2)
+addm;v(6)-v(2)
+addm;v(0)-v(7)
+removem;i(l4)
+addm;i(lout)
+end
+
+var;voltage_source_resonant
+add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+remove;l1
+remove;k1
+add;c1 2 6 {c1_mag}
+change;lb 0 7 {lb_mag}
+add;lout 7 0 {lout_mag}
+remove;i1
+removem;v(0)-v(2)
+addm;v(6)-v(2)
+addm;v(0)-v(7)
+removem;i(l4)
+addm;i(lout)
+end
 
 #NOTES
 Splitting this out to make a concise inductance cancel circuit.
