@@ -23,6 +23,9 @@ def calc_lc_rfreq(l, c):
     # frequency, not omega!
     return 1/(2*np.pi*np.sqrt(l*c))
 
+def calc_c_from_rfreq(rfreq, l):
+    return 1/(4*np.pi**2*l*rfreq**2)
+
 def calc_lc_q(r, l, c, mode="series"):
     if mode=="series" or mode=="s":
         qfactor = 1/r*np.sqrt(l/c)
