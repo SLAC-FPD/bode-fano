@@ -1,0 +1,54 @@
+r1 = 50
+r2 = 50
+l = 1/(2*np.pi*5e7)  # 5e-8
+c = 1/(2*np.pi*5e7)  # 2.0264236728467557e-10
+freqs = np.linspace(4e7, 6e7, 2001)  # (1e5, 1e9, 10000)
+# omega = 5e7
+
+rhos = []
+rhos_bf = []
+xas = []
+xbs = []
+z_denoms = []
+z_denoms_bf = []
+xas_bf = []
+zis = []
+zis_bf = []
+
+for freq in freqs:
+    omega = 2*np.pi*freq
+    xa = -1/(omega*c)  # 
+    xb = omega*l
+    z_denom = r2**2 + (xa + xb)**2
+    zr = r2*xa**2/z_denom
+    zi = xa*(r2**2 + (xa+xb)*xb)/z_denom
+    rho = np.sqrt(((r1-zr)**2+zi**2)/((r1+zr)**2+zi**2)) # complex is (r1 - z) / (r1 + z)
+    rhos.append(rho)
+    xa_bf = -omega*l  # bode-fano case??
+    z_denom_bf = r2**2 + (xa_bf + xb)**2
+    zr_bf = r2*xa_bf**2/z_denom_bf
+    zi_bf = xa*(r2**2 + (xa_bf+xb)*xb)/z_denom_bf
+    rho_bf = np.sqrt(((r1-zr_bf)**2+zi_bf**2)/((r1+zr_bf)**2+zi_bf**2)) # complex is (r1 - z) / (r1 + z)
+    rhos_bf.append(rho_bf)
+    # print(xa, xa_bf)
+    xas.append(xa)
+    xbs.append(xb)
+    z_denoms.append(z_denom)
+    z_denoms_bf.append(z_denom_bf)
+    xas_bf.append(xa_bf)
+    zis.append(zi)
+    zis_bf.append(zi_bf)
+
+rhos = np.array(rhos)
+rhos_bf = np.array(rhos_bf)
+plt.plot(freqs, np.log(1/rhos), label="Normal")  # np.log(1/rhos)
+plt.plot(freqs, np.log(1/rhos_bf), label="Bode-Fano")  # np.log(1/rhos_bf)
+# plt.plot(freqs, np.ones(len(freqs))*np.pi/(c*r1)/omega)
+plt.yscale("log")
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+# print((freqs[1]-freqs[0])*np.sum(np.log(1/rhos)), (freqs[1]-freqs[0])*np.sum(np.log(1/rhos_bf)), np.pi/(c*r1))  # /(freqs[-1]-freqs[0]))
+
