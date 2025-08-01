@@ -1,0 +1,116 @@
+freqs = np.logspace(7, 8, 1001)  # np.linspace(1e6,1e8, 9901)
+omega = 2*np.pi*freqs
+rout = 50
+rin = 2e-5
+k0 = np.sqrt(1/3)
+l0 = 2.2499999999999997e-10
+c0 = 2.701898230462341e-08
+
+la = 3.1870878967400726e-10  # 2.662988998165056e-10
+lb = 3.070238071184642e-10
+k = 0.2
+lj = calc_lj(1.09e-6, np.pi)
+lcancel = la*(1-k**2*lb/(lb+lj))
+
+zrest = l3_raw + z3 + 1/(1/l2 + 1/(l1 + rin))
+lj_sees = lb*(1-k**2*omega*1j*la/(omega*1j*la + zrest))
+lcancels = np.linspace(-3.76e-10, -4.5e-10, 2)
+zadds = [omega*1j*-3.76e-10, -1j/(omega * c0), 0]  # omega*1j*-3.76e-10, 
+zadd_titles = ["Bode-Fano", "Resonant", "No Bode-Fano"]  # "Bode-Fano (Best)", 
+line_colors = {"Bode-Fano": "g", "Resonant": "b", "No Bode-Fano": "r--"}
+p_ins = {}
+p_outs = {}
+p_transfers = {}
+
+for i in range(len(zadds)):
+    l5 = (1-k0)*l0*1j*omega
+    l4 = k0*l0*1j*omega
+    z3 = 1/(1/(rout+l5) + 1/l4)
+    l3_raw = 2*(1-k0)*l0*1j*omega 
+    zadd = zadds[i]  # omega*1j*lcancel  # -1j/(omega * c0)  # 0  # 
+    l3 = l3_raw + zadd
+    l2 = k0*l0*omega
+    z2 = 1/(1/l2 + 1/(l3 + z3))
+    l1 = (1 - k0)*l0*1j*omega
+    z1 = l1+rin+z2
+    
+    # plt.plot(freqs, z1)
+    v = 1e-10
+    i1 = v / np.abs(z1)
+    i2 = i1 * np.abs(l2/(l2 + l3 + z3))
+    i3 = i2 * np.abs(l4/(l4 + l5 + rout))
+    p_in = v**2 / np.abs(z1)
+    p_out = i3 ** 2 * rout
+    
+    plt.plot(freqs, p_in, label="Input")
+    plt.plot(freqs, p_out, label="Output")
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Power (AU)")
+    plt.yscale("log")
+    plt.xscale("log")
+    plt.ylim(10**(-25.9), 10**(-17.1))
+    plt.grid()
+    plt.tight_layout()
+    plt.show()
+    
+    p_transfer = np.log10(p_out/p_in)*10
+    plt.title(f"{zadd_titles[i]}, Max: {np.max(p_transfer)} dB")
+    plt.plot(freqs, p_transfer)
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("Power Transfer (dB)")
+    plt.xscale("log")
+    plt.ylim(-78, -24)
+    plt.grid()
+    plt.tight_layout()
+    plt.show()
+    
+    p_ins[zadd_titles[i]] = p_in
+    p_outs[zadd_titles[i]] = p_out
+    p_transfers[zadd_titles[i]] = p_transfer
+
+for zadd_key in zadd_titles:
+    # print(zadd_key)
+    plt.plot(freqs, p_transfers[zadd_key], line_colors[zadd_key], label=zadd_key)
+
+plt.rcParams.update({'font.size': 22})
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Power Transfer (dB)")  # Power (AU)")  # 
+# plt.yscale("log")
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+'''
+df_bf = pd.read_csv("ic_results/IndCancel_couple_out_rout2_data.csv")
+df_nobf = pd.read_csv("ic_results/IndCancel_couple_out_rout_nobodefano_data.csv")
+df_res = pd.read_csv("ic_results/IndCancel_couple_out_resonant_rout_nobodefano_data.csv")
+
+dfs = {"Bode-Fano": df_bf, "Resonant": df_nobf, "No Bode-Fano": df_res}
+
+for zadd_key in zadd_titles:
+    freqs_df = dfs[zadd_key]["i1_freq"].to_numpy()
+    p_ins_df = dfs[zadd_key]["energy_in_fft"].to_numpy()
+    p_outs_df = dfs[zadd_key]["energy_out_fft"].to_numpy()
+    p_transfers_df = np.log10(p_outs_df/p_ins_df)*10
+    phases_df = df_bf["phase_avg"].to_numpy()
+    plt.plot(freqs_df, p_outs_df, line_colors[zadd_key], label=zadd_key)
+
+plt.rcParams.update({'font.size': 22})
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Power (AU)")  # Power Transfer (dB)")  # Phase (rad)")  # 
+plt.yscale("log")
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+'''
+
+'''
+plt.plot(freqs, np.abs(l3_raw))
+plt.plot(freqs, np.abs(zadd))
+plt.xscale("log")
+plt.yscale("log")
+plt.show()
+'''

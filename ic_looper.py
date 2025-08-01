@@ -10,21 +10,21 @@ cd = CircuitData()
 '''
 
 # what do we want to do
-template = "imp_match"  # ind_cancel"  # "kent"  # 
-param_file = "params/imp_match_params_250703.txt"  # "params/ind_cancel_params_250606.txt"  # "params/kent_params_250303.txt"  # None  # 
-variation = "series_rlc"  # "basic_match"  # "couple_out_rout"  # _resonant"  # "voltage_source_output"  # "v_bias_cancel"  # None  # 
-no_bodefano = False  # True  # 
+template = "ind_cancel"  # "imp_match"  # "kent"  # 
+param_file = "params/ind_cancel_params_250606.txt"  # "params/imp_match_params_250703.txt"  # "params/kent_params_250303.txt"  # None  # 
+variation = "couple_out_rout"  # "basic_match"  # "series_rlc"  # _resonant"  # "voltage_source_output"  # "v_bias_cancel"  # None  # 
+no_bodefano = False  # 
 no_r_jj = False
 no_c_jj = False
 phase_bias = False
 original_params = False  # True  # get params directly from params file
 plot_jj_info = True
 get_fft_data = True
-draw_plots = False  # True  # 
+draw_plots = True  # False  # 
 mode = ""
 
-loop_param = "v1_freq"  # i1_freq  # None  # "l1_mag"  # None  # triggers looper if not None
-loop_list = np.linspace(1e5, 1e8, 1000)  # np.linspace(1.e6, 1e9, 334)  # None  # np.linspace(3.333e-10, 3.335e-10, 21)  # 
+loop_param = "i1_freq"  # i1_freq  # None  # "l1_mag"  # None  # triggers looper if not None
+loop_list = [5.e7]  # np.linspace(1.e7, 1.e8, 451)  # np.linspace(1e6, 1e8, 1000)  # None  # np.linspace(3.333e-10, 3.335e-10, 21)  # 
 
 if template == "imp_match":
     plot_jj_info = False
@@ -42,7 +42,7 @@ if loop_param is None: loop_list = [None]
 # initialize
 cd.read_template(template, param_file, variation)
 # results_to_watch = ["v(101)"]
-save_results = False
+save_results = True
 
 # set base parameters
 ics = 1.09e-6  # 1.6e-7  # This is the actual jj junction critical current
@@ -56,9 +56,9 @@ round_digits = np.floor(np.log10(freq)) + 1
 idc = 1.0339169242309647e-05  # 0  # to current bias to pi
 if idc == 0: mode += "_nojjbias"
 
-step_time = 1e-9  # 10**(-(round_digits+3))
-idx_ringing = 100 # 20000  # 2000  # if needed to remove
-npts = 10000 # 100000  # 1000000 if need to go three digits accurate
+step_time = 10**(-(round_digits+3))
+idx_ringing = 20000  # 100 # 2000  # if needed to remove
+npts = 2000000 # 100000  # 1000000 if need to go three digits accurate
 stop_time = step_time * (npts + idx_ringing)
 
 l0 = 3e-10  # 0  # 5e-10  # 
@@ -142,7 +142,7 @@ cd.change_param("icrit_mag", icr)
 cd.change_param("ics1_mag", ics)
 cd.change_param("idc_mag", idc)
 cd.change_param("l0_mag", l0)
-cd.change_param("l1_mag", l1)  # 3.3339e-10)  # 
+cd.change_param("l1_mag", 2.662988998165056e-10)  # l1)  # 3.3339e-10)  # 
 cd.change_param("l2_mag", l2)
 cd.change_param("k1_mag", k)
 cd.change_param("filename", f"ic_results/IndCancel_{variation}{mode}")
@@ -189,6 +189,7 @@ elif "couple_out" in variation:  # variation == "couple_out" or variation == "co
     vout_tag = "v(0)-v(7)"
     voutput_tag = "v(0)-v(8)"
     iout_tag = "i(ld)"  # "i(lout)"  # 
+    if "rout" in variation: vinput_tag = "v(9)-v(6)"
     
 elif "voltage_source" in variation:
     cd.change_param("l0_mag", l0)
@@ -367,10 +368,6 @@ for loop_val in loop_list:
         vinput = cd.data[vinput_tag].to_numpy()[idx_ringing:]
         leff = amplitude(vinput)/amplitude(iin)/omega
     
-    if "rout" in variation:  # variation ends with resistive output
-        leff = cd.params["r1_mag"]  # input also has to be resistive to match dimensions
-        loutput = cd.params["r1_mag"]  # i think this is correct, the 1/2 factor is due to ac amplitude
-    
     if template == "imp_match":
         rin = cd.params["rin_mag"]
         rout = cd.params["rout_mag"]
@@ -381,8 +378,15 @@ for loop_val in loop_list:
         # print(f"INPUT INDUCTANCE COMPARISON - ACTUAL INPUT: {lin}, EFFECTIVE INPUT: {leff}\n\n")  #  make equivalent?
         # print(f"CURRENT COMP - INPUT: {amplitude(iin)}, OUTPUT: {amplitude(iout)}, \
         #         \nTRANSFER: {amplitude(iout)/amplitude(iin)}, TRANSFER BY FFT: {iout_fft / iin_fft}\n\n")
-        print(f"ENERGY COMP - INPUT: {energy_in}, OUTPUT: {energy_out}, \
-                \nTRANSFER: {energy_out/energy_in}, TRANSFER BY FFT: {energy_out_fft/energy_in_fft}\n\n")
+    elif "rout" in variation:  # variation ends with resistive output
+        energy_in = amplitude(vinput) * amplitude(iin)
+        energy_out = amplitude(voutput) * amplitude(iout)
+        energy_in_fft = amplitude(vinput) * iin_fft
+        energy_out_fft = amplitude(voutput) * iout_fft
+        leff = cd.params["r1_mag"]  # input also has to be resistive to match dimensions
+        loutput = cd.params["r1_mag"]  # i think this is correct, the 1/2 factor is due to ac amplitude
+        print(f"CURRENT COMP - INPUT: {amplitude(iin)}, OUTPUT: {amplitude(iout)}, \
+                \nTRANSFER: {amplitude(iout)/amplitude(iin)}, TRANSFER BY FFT: {iout_fft / iin_fft}\n\n")
     else:
         energy_in = 1/2 * leff * amplitude(iin)**2
         energy_out = 1/2 * loutput * amplitude(iout)**2
@@ -391,16 +395,16 @@ for loop_val in loop_list:
         print(f"INPUT INDUCTANCE COMPARISON - ACTUAL INPUT: {lin}, EFFECTIVE INPUT: {leff}\n\n")
         print(f"CURRENT COMP - INPUT: {amplitude(iin)}, OUTPUT: {amplitude(iout)}, \
                 \nTRANSFER: {amplitude(iout)/amplitude(iin)}, TRANSFER BY FFT: {iout_fft / iin_fft}\n\n")
-        print(f"ENERGY COMP - INPUT: {energy_in}, OUTPUT: {energy_out}, \
-                \nTRANSFER: {energy_out/energy_in}, TRANSFER BY FFT: {energy_out_fft/energy_in_fft}\n\n")
+    print(f"ENERGY COMP - INPUT: {energy_in}, OUTPUT: {energy_out}, \
+            \nTRANSFER: {energy_out/energy_in}, TRANSFER BY FFT: {energy_out_fft/energy_in_fft}\n\n")
     try:
         if cd.params["la_mag"] > 0: lout_prev_stage = cd.params["la_mag"]
         else:
             lout_prev_stage = cd.params["l0_mag"]
-            energy_out_prev = 1/2 * lout_prev_stage * amplitude(iloop)**2
-            energy_out_prev_fft = 1/2 * lout_prev_stage * iout_prev_fft**2
-            print(f"(IF REQUIRED) ENERGY COMP @ PREV OUTPUT - INPUT: {energy_in}, OUTPUT: {energy_out_prev}, \
-                    \nTRANSFER: {energy_out_prev/energy_in}, TRANSFER BY FFT: {energy_out_prev_fft/energy_in_fft}\n\n")
+        energy_out_prev = 1/2 * lout_prev_stage * amplitude(iloop)**2
+        energy_out_prev_fft = 1/2 * lout_prev_stage * iout_prev_fft**2
+        #print(f"(IF REQUIRED) ENERGY COMP @ PREV OUTPUT - INPUT: {energy_in}, OUTPUT: {energy_out_prev}, \
+        #        \nTRANSFER: {energy_out_prev/energy_in}, TRANSFER BY FFT: {energy_out_prev_fft/energy_in_fft}\n\n")
     except KeyError: pass
     
     if loop_param is None: results_dict = None  # there's probably a better way to do this
@@ -449,28 +453,38 @@ if save_results:
     if results_dict is None:
         results_dict = cd.data
         mode += "_onepoint"
-    for key in results_dict.keys():  # remove empty
-            if len(results_dict[key]) == 0: del results_dict[key]
+    for key in results_dict.keys():  # remove empty, make sure first value is not empty
+        if len(results_dict[key]) == 0: results_dict[key] = np.zeros(keylen)
+        else: keylen = len(results_dict[key])
     print("Saving Results.")
     data_pd = pd.DataFrame(results_dict)  # if loops
     data_pd.to_csv(f"ic_results/IndCancel_{variation}{mode}_data.csv", header=True, index=False)
     
 if get_fft_data and loop_param is not None:
     # vna_like look at fft data
+    plt.rcParams.update({'font.size': 15, "text.usetex": False, "font.family": "sans-serif", "figure.figsize": "14, 10"})
     if template == "imp_match": vna_freq = np.array(results_dict["vfreq_fft"])
     else: vna_freq = np.array(results_dict["ifreq_fft"])
-    vna_in = np.array(results_dict["energy_in_fft"])
-    vna_out = np.array(results_dict["energy_out_fft"])
+    vna_in = np.array(results_dict["energy_in"])  # _fft"])
+    vna_out = np.array(results_dict["energy_out"])  # _fft"])
+    vna_in_fft = np.array(results_dict["energy_in_fft"])
+    vna_out_fft = np.array(results_dict["energy_out_fft"])
     fig, ax1 = plt.subplots()
     ax1.set_xlabel('Frequency (Hz)')
     ax1.set_ylabel('Energy (AU)', color="blue")
-    ax1.plot(vna_freq, vna_in, "g", label="Input Energy")
-    ax1.plot(vna_freq, vna_out, "b--", label="Output Energy")
+    ax1.set_xscale("log")  # if linear looks bad
+    ax1.set_yscale("log")  # if linear looks bad
+    # ax1.plot(vna_freq, vna_in, "g--", label="Input Energy")
+    # ax1.plot(vna_freq, vna_out, "b--", label="Output Energy")
+    ax1.plot(vna_freq, vna_in_fft, "g.", label="Input Energy (FFT)")
+    ax1.plot(vna_freq, vna_out_fft, "b.", label="Output Energy (FFT)")
     ax1.legend()
     ax1.tick_params(axis='y', labelcolor="blue")
     ax2 = ax1.twinx()
     ax2.set_ylabel('Output-Input Energy Ratio (dB)', color="orange")
-    ax2.plot(vna_freq, power2dB(vna_out/vna_in), label="Output/Input", color="orange")
+    # ax2.plot(vna_freq, power2dB(vna_out/vna_in), "-", label="Output/Input", color="orange")
+    ax2.plot(vna_freq, power2dB(vna_out_fft/vna_in_fft), "-.", label="Output/Input (FFT)", color="red")
+    ax2.legend()
     ax2.tick_params(axis='y', labelcolor="orange")
     '''
     if "resonant" in variation:
@@ -489,7 +503,18 @@ if get_fft_data and loop_param is not None:
     plt.savefig(f"ic_results/ic_fft_sweep_{variation}{mode}.png")
     plt.show()
     # plt.cla()
-    
+
+'''
+plt.plot(vna_freq, vna_in, "g--", label="Input Energy")
+plt.plot(vna_freq, vna_out, "b--", label="Output Energy")
+plt.xscale("log")
+plt.yscale("log")
+plt.grid()
+plt.legend()
+plt.tight_layout()
+plt.show()
+'''
+
 '''
 # plt.plot(loop_list, power2dB(vna_out/vna_in))
 # np.max(vna_out/vna_in)*1.8, (vna_freq[6]+vna_freq[7]*1.05)/2.05, (vna_freq[1]-vna_freq[0])/1.2)
