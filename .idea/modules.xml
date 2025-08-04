@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/bode-fano-analytical.iml" filepath="$PROJECT_DIR$/.idea/bode-fano-analytical.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../pyWRspice/.idea/pyWRspice.iml" filepath="$PROJECT_DIR$/../pyWRspice/.idea/pyWRspice.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../squid-op-amp/.idea/squid-op-amp.iml" filepath="$PROJECT_DIR$/../squid-op-amp/.idea/squid-op-amp.iml" />
+    </modules>
+  </component>
+</project>
