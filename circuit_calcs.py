@@ -180,6 +180,10 @@ def exp_decay_alt(x, a, b, c):
 def exp_inverse(x, a, b, c, d):
     return a*np.exp(-c / (x - b)) + d
 
+def exponential(x, a, b, c):
+    return a*np.exp(b*x) + c
+
+exponential_model = Model(exponential)
 exp_decay_model = Model(exp_decay)
 exp_alt_model = Model(exp_decay_alt)
 sine_model = Model(sine_wave)

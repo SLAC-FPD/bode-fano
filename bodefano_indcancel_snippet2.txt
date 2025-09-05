@@ -1,0 +1,72 @@
+# fixed params
+k0 = np.sqrt(1/3)
+l0 = 2.2499999999999997e-10
+lj0 = calc_lj(1.09e-6)
+lj = calc_lj(1.09e-6, np.pi)
+omega = 5.e7 * 2 * np.pi
+rin = 1e10
+rout = 50
+rloop = 2e-5  # in loop
+lm = (1-k0)*l0*1j*omega
+lm_ = k0*l0*1j*omega
+zin = 1/(1/lm_ + 1/(lm + rin))
+zout = 1/(1/lm_ + 1/(lm + rout))
+zrest = zin + zout + 2*lm + rloop
+lrest = z_rest.imag/omega
+
+percent_cancel_base = 0.5  # 1.2 
+k_base = 0.5
+k_percent_base = 0.9  #  amount lb takes in of k to provide lj cancelling
+
+percent_cancels = [1.0]  # np.linspace(0.25, 0.75, 11)  # [0]  # 
+ks = [0.4]  # np.linspace(0.1, 0.5, 41)  # [0.5]  # 
+k_percents = [0.98]  # np.linspace(0.9, 1, 11)  # [0]  # np.linspace(0.49, 0.51, 5)  # 
+
+la_base = 3.28939195736803e-10  # 
+lb_base = 3.37570339299402e-10  # 
+k_base = 0.5  # 
+las = np.linspace(la_base*0.99, la_base*1.01, 3)
+lbs = np.linspace(lb_base*0.99, lb_base*1.01, 3)
+# ks = np.linspace(0.49, 0.51, 3)
+
+params_dict = {"l1_mag":[], "l2_mag":[], "k1_mag":[], "weirdness": [], "safeness": []}
+
+for percent_cancel in percent_cancels:  # la in las:  # 
+    for k in ks:
+        for k_percent in k_percents:  # lb in lbs:  # 
+            lcancel_target = -2 * l0 * percent_cancel  # (2 - k0**2)
+            lb = lj0*np.sqrt(1 + (k*k_percent)**2)  # 3.070238071184642e-10  # 
+            la = lcancel_target / (1 - k**2*lb/(lb+lj))  # 3.1870878967400726e-10  # 
+            lcancel = la*(1-k**2*lb/(lb+lj))
+            # zloop = zrest + 1j*omega*lcancel
+            z_lj_sees = 1j*omega*lb*(1-k**2*omega*1j*la/(omega*1j*la + zrest))
+            lj_sees = z_lj_sees.imag/omega
+            weirdness = np.sqrt((1 - percent_cancel/percent_cancel_base)**2 + (1 - k/k_base)**2 + (1 - k_percent/k_percent_base)**2)
+            # np.sqrt((1-k/k_base)**2 + (1 - la/la_base)**2 + (1 - lb/lb_base)**2)
+            safeness = 1 - lj_sees / lj0
+            # print(la, lb, weirdness, safeness)  # , lj0, lcancel)
+            params_dict["l1_mag"].append(la)
+            params_dict["l2_mag"].append(lb)
+            params_dict["k1_mag"].append(k)
+            params_dict["weirdness"].append(weirdness)
+            params_dict["safeness"].append(safeness)
+
+print(len(params_dict["l1_mag"]))
+df = pd.DataFrame(params_dict)
+df.to_csv("ic_results/loop_params.csv", header=True, index=False)
+
+'''
+df = pd.read_csv("ic_results/loop_params_full.csv")
+df2 = pd.read_csv("ic_results/IndCancel_couple_out_rout2_from_list_data_full.csv")
+index = df2["index"]
+safeness = df["safeness"]
+power_trans = power2dB(df2["energy_out_fft"]/df2["energy_in_fft"])
+
+cond = (df["l1_mag"]/df["l2_mag"]<1.1) & (df["l1_mag"]/df["l2_mag"]>0.9) # & (power_trans>-12.55) & (power_trans<-12.5)
+
+plt.plot(index[cond], power_trans[cond], ".")
+plt.show()
+
+df[power_trans == np.max(power_trans)]
+
+'''
