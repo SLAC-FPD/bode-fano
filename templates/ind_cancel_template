@@ -24,9 +24,11 @@ vm_mag,16.5e-3
 
 ics1_mag,1.6e-7
 phi1_mag,0
+r0_mag,2e-5
 r1_mag,1e5
 r2_mag,1e5
 c1_mag,2.057e-10
+c1_offset,0
 
 l3_mag,1e-13
 l4_mag,1e-7
@@ -79,6 +81,50 @@ write {filename}.txt {measurables}
 
 
 #VARIATIONS
+var;couple_out_resonant_rout2
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k3_mag}
+add;rout 8 0 {r2_mag}
+add;rin 0 9 {r1_mag}
+add;c0 2 7 {c1_mag}
+remove;i1
+remove;b1
+change;l3 3 0 {l3_mag}
+add;i1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+remove;l1
+remove;k1
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;v(0)-v(8)
+addm;v(9)-v(6)
+addm;i(ld)
+removem;v(0)-v(2)
+removem;v(4)-v(3)
+removem;v(101)
+end
+remove;l0
+add;r0 1 2 {r0_mag}
+
+var;couple_out_rout2
+add;lc 0 7 {lc_mag}
+add;ld 0 8 {ld_mag}
+add;k3 lc ld {k3_mag}
+add;rout 8 0 {r2_mag}
+add;rin 0 9 {r1_mag}
+remove;i1
+add;i1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+change;l1 2 7 {l1_mag}
+addm;v(7)-v(2)
+addm;v(0)-v(7)
+addm;v(0)-v(8)
+addm;v(9)-v(6)
+addm;i(ld)
+removem;v(0)-v(2)
+end
+remove;l0
+add;r0 1 2 {r0_mag}
+
 var;couple_out
 add;lc 0 7 {lc_mag}
 add;ld 0 8 {ld_mag}
@@ -116,24 +162,7 @@ add;k3 lc ld {k3_mag}
 add;rout 8 0 {r2_mag}
 add;rin 0 9 {r1_mag}
 remove;i1
-add;v1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
-change;l1 2 7 {l1_mag}
-addm;v(7)-v(2)
-addm;v(0)-v(7)
-addm;v(0)-v(8)
-addm;v(9)-v(6)
-addm;i(ld)
-removem;v(0)-v(2)
-end
-
-var;couple_out_rout2
-add;lc 0 7 {lc_mag}
-add;ld 0 8 {ld_mag}
-add;k3 lc ld {k3_mag}
-add;rout 8 0 {r2_mag}
-add;rin 0 9 {r1_mag}
-remove;i1
-add;v1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+add;i1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
 change;l1 2 7 {l1_mag}
 addm;v(7)-v(2)
 addm;v(0)-v(7)
@@ -152,7 +181,9 @@ add;rin 0 9 {r1_mag}
 remove;l0
 add;c0 1 2 {c1_mag}
 remove;i1
-add;v1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
+remove;b1
+change;l3 3 0 {l3_mag}
+add;i1 9 6 ac sin({i1_phase} {i1_mag} {i1_freq})
 change;l1 2 7 {l1_mag}
 addm;v(7)-v(2)
 addm;v(0)-v(7)
@@ -160,6 +191,8 @@ addm;v(0)-v(8)
 addm;v(9)-v(6)
 addm;i(ld)
 removem;v(0)-v(2)
+removem;v(4)-v(3)
+removem;v(101)
 end
 
 var;couple_out_rload
@@ -228,6 +261,7 @@ addm;v(0)-v(3)
 addm;v(3)-v(4)
 addm;v(4)-v(0)
 addm;v(0)-v(5)
+add;.ic v(2)={c1_offset}
 end
 
 var;coupled_voltage_source
