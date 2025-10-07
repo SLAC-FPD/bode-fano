@@ -11,8 +11,8 @@ cd = CircuitData()
 
 # what do we want to do
 template = "ind_cancel"  # "imp_match"  # "kent"  # 
-param_file = "params/ind_cancel_params_250904.txt"  # "params/imp_match_params_250703.txt"  # "params/kent_params_250513.txt"  # None  # 
-variation = "couple_out_rout2"  # "basic_match"  # "series_rlc"  # _resonant"  # "voltage_source_output"  # "v_bias_cancel"  # None  # 
+param_file = "params/ind_cancel_params_251006.txt"  # "params/imp_match_params_250703.txt"  # "params/kent_params_250513.txt"  # None  # 
+variation = "voltage_source_equiv_rout"  # "couple_out_rout_parallel"  # "basic_match"  # "series_rlc"  # _resonant"  # "voltage_source_output"  # "v_bias_cancel"  # None  # 
 no_bodefano = False  # True  # 
 no_r_jj = False
 no_c_jj = False
@@ -23,11 +23,11 @@ get_fft_data = True
 draw_plots = False  # True  # 
 mode = ""
 
-loop_param = "i1_freq"  # "l1_mag"  # "c1_offset"  # None  # "l1_mag"  # None  # triggers looper if not None
-loop_list = np.linspace(1.e7, 1.e8, 451)  # [5.e7]  # np.linspace(4.5e7, 5.e7, 51)  # np.linspace(6.0e7, 6.5e7, 51)  # np.linspace(1e7, 1e8, 451)  # 
+loop_param = "i1_freq"  # "idc_mag"  # "l1_mag"  # "c1_offset"  # None  # "l1_mag"  # None  # triggers looper if not None
+loop_list = [5.e7]  # np.linspace(1.0339169242309647e-05*0.9999, 1.0339169242309647e-05*1.0001, 21)  # np.linspace(4.75e7, 5.25e7, 51)  # np.linspace(1.e7, 1.e8, 451)  # 
 # np.linspace(1e6, 1e8, 1000)  # None  # np.linspace(3.8811684020319137e-10*0.9, 3.8811684020319137e-10*1.1, 3)  # 
 
-loop_params_file = None  # "ic_results/loop_params.csv"  # 
+loop_params_file = None  # "ic_results/loop_params_3.csv"  # 
 if loop_params_file is not None:
     loop_df = pd.read_csv(loop_params_file)
     loop_param = list(loop_df.keys())
@@ -71,8 +71,8 @@ round_digits = np.floor(np.log10(freq)) + 1
 idc = 1.0339169242309647e-05  # 0  # to current bias to pi
 if idc == 0: mode += "_nojjbias"
 
-step_time = 10**(-(round_digits+3))  # * 10
-idx_ringing = 20000  # 1000000  # 100 # if needed to remove
+step_time = 10**(-(round_digits+3))  # / 100  # * 10
+idx_ringing = 20000  # 0  # 50000  # 1000000  # 100 # if needed to remove
 npts = 1000000 # 100000  # 1000000 if need to go three digits accurate
 if "resonant" in variation:
     step_time *= 10
@@ -206,12 +206,13 @@ elif "couple_out" in variation:  # variation == "couple_out" or variation == "co
     cd.change_param("lin_mag", linput)
     cd.change_param("lout_mag", loutput)
     vcancel_tag = "v(7)-v(2)"
+    vinput_tag = "v(1)-v(0)"
     vout_tag = "v(0)-v(7)"
     voutput_tag = "v(0)-v(8)"
     iout_tag = "i(ld)"  # "i(lout)"  # 
     if "rout" in variation:
-        iin_tag = "i(lb)"
-        vinput_tag = "v(1)-v(0)"  # "v(9)-v(6)"
+        iin_tag = "i(l0)"  # "i(lb)"
+        vinput_tag = "v(0)-v(6)"  # "v(1)-v(0)"  # "v(9)-v(6)"
     
 elif "voltage_source" in variation:
     cd.change_param("l0_mag", l0)
@@ -221,11 +222,11 @@ elif "voltage_source" in variation:
     cd.change_param("lout_mag", loutput)
     vcancel_tag = "v(6)-v(2)"
     vinput_tag = "v(1)-v(0)"
-    vout_tag = "v(0)-v(6)"
+    vout_tag = "v(0)-v(7)"
     voutput_tag = "v(0)-v(7)"
     iin_tag = "i(la)"
     iloop_tag = "i(la)"
-    iout_tag = "i(lout)"
+    iout_tag = "i(lb)"  # "i(lout)"
 
 if phase_bias:
     cd.change_param("phi1_mag", np.pi)
@@ -324,6 +325,7 @@ for loop_val in loop_list:
             plt.plot(time_array, phase)
             plt.xlabel("Time (s)")
             plt.ylabel("Josephson junction phase")
+            # plt.ylim(-2.995, -3.155)
             plt.grid()
             plt.tight_layout()
             plt.savefig("ic_results/ic_phase.png")
@@ -555,7 +557,7 @@ if get_fft_data and loop_param is not None:
     plt.rcParams.update({'font.size': 15, "text.usetex": False, "font.family": "sans-serif", "figure.figsize": "14, 10"})
     if template == "imp_match": vna_freq = np.array(results_dict["vfreq_fft"])
     elif loop_param == "i1_freq": vna_freq = np.array(results_dict["pfreq_fft"])  # ifreq_fft"])
-    elif type(loop_param) == list: vna_freq = loop_df["weirdness"]  # "safeness"]  # np.array(results_dict["index"])
+    elif type(loop_param) == list: vna_freq = loop_df["safeness"]  # "k1_mag"]  # np.array(results_dict["index"])
     # loop_df["k1_mag"]*np.sqrt(loop_df["l2_mag"]*loop_df["l1_mag"])  # 
     else: vna_freq = loop_list
     vna_in = np.array(results_dict["energy_in"])  # _fft"])
@@ -564,7 +566,7 @@ if get_fft_data and loop_param is not None:
     vna_out_fft = np.array(results_dict["pout_fft"])  # energy_out_fft"])
     fig, ax1 = plt.subplots()
     if loop_param == "i1_freq": ax1.set_xlabel('Frequency (Hz)')
-    elif type(loop_param) == list: ax1.set_xlabel("Weirdness")  # "Index Number")  # "Safeness")  # 
+    elif type(loop_param) == list: ax1.set_xlabel("Safeness")  # "Weirdness")  # "Index Number")  # 
     else: ax1.set_xlabel(loop_param)
     ax1.set_ylabel('Energy (AU)', color="blue")
     # ax1.set_xscale("log")  # if linear looks bad
@@ -583,17 +585,6 @@ if get_fft_data and loop_param is not None:
     ax2.plot(vna_freq, power2dB(vna_out_fft/vna_in_fft), line_type, label="Output/Input (FFT)", color="red")  # results_dict["phase_avg"], 
     ax2.legend()
     ax2.tick_params(axis='y', labelcolor="orange")
-    '''
-    if "resonant" in variation:
-        vna_fit = lorentz_model.fit(vna_out/vna_in, x=vna_freq[0], par0=np.max(vna_out/vna_in), par1=vna_freq[len(vna_freq)//2], par2=(vna_freq[1]-vna_freq[0]))
-        vna_fit_freq = np.linspace(loop_list[0], loop_list[-1], 1001)
-        vna_fit_dB = power2dB(lorentzian(vna_fit_freq, np.max(vna_out/vna_in)*1.8, 4.565e7, (vna_freq[1]-vna_freq[0])/1.2))
-        # np.max(vna_out/vna_in)*1.8, (vna_freq[6]+vna_freq[7]*1.05)/2.05, (vna_freq[1]-vna_freq[0])/1.2))
-        # vna_fit.params['par0'].value, vna_fit.params['par1'].value, vna_fit.params['par2'].value))
-        # np.max(vna_out/vna_in), (vna_freq[6]+vna_freq[7])/2, (vna_freq[1]-vna_freq[0])))
-        print(vna_fit.fit_report())
-        ax2.plot(vna_fit_freq, vna_fit_dB, "r--", label="Lorentzian Fit")
-    '''
     # ax2.legend()
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     plt.grid()
@@ -602,17 +593,17 @@ if get_fft_data and loop_param is not None:
     # plt.cla()
 
 '''
-plt.plot(vna_freq, vna_in, "g--", label="Input Energy")
-plt.plot(vna_freq, vna_out, "b--", label="Output Energy")
-plt.xscale("log")
-plt.yscale("log")
+plt.plot(vna_freq, results_dict["phase_avg"], "g.", label="Phase")  # vna_freq  # results_dict["params_list"]
+# plt.plot(vna_freq, vna_out, "b--", label="Safeness")
+# plt.xscale("log")
+# plt.yscale("log")
 plt.grid()
 plt.legend()
 plt.tight_layout()
+plt.savefig(f"ic_results/phase_sweep_{variation}{mode}.png")
 plt.show()
-'''
 
-'''
+
 # plt.plot(loop_list, power2dB(vna_out/vna_in))
 # np.max(vna_out/vna_in)*1.8, (vna_freq[6]+vna_freq[7]*1.05)/2.05, (vna_freq[1]-vna_freq[0])/1.2)
 
@@ -791,6 +782,16 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
+if "resonant" in variation:
+    vna_fit = lorentz_model.fit(vna_out/vna_in, x=vna_freq[0], par0=np.max(vna_out/vna_in), par1=vna_freq[len(vna_freq)//2], par2=(vna_freq[1]-vna_freq[0]))
+    vna_fit_freq = np.linspace(loop_list[0], loop_list[-1], 1001)
+    vna_fit_dB = power2dB(lorentzian(vna_fit_freq, np.max(vna_out/vna_in)*1.8, 4.565e7, (vna_freq[1]-vna_freq[0])/1.2))
+    # np.max(vna_out/vna_in)*1.8, (vna_freq[6]+vna_freq[7]*1.05)/2.05, (vna_freq[1]-vna_freq[0])/1.2))
+    # vna_fit.params['par0'].value, vna_fit.params['par1'].value, vna_fit.params['par2'].value))
+    # np.max(vna_out/vna_in), (vna_freq[6]+vna_freq[7])/2, (vna_freq[1]-vna_freq[0])))
+    print(vna_fit.fit_report())
+    ax2.plot(vna_fit_freq, vna_fit_dB, "r--", label="Lorentzian Fit")
+
 iout_cutout = iout[-3000:] # * 1e12
 time_cutout = time_array[-3000:] # * 1e8
 # time_cutout -= np.average(time_cutout)
@@ -799,5 +800,26 @@ exp_fit = exponential_model.fit(iout_cutout[800:1350], x=time_cutout[800:1350], 
 plt.plot(time_cutout[800:1350], exp_fit.best_fit)
 # exp_fit = exponential_model.fit(iout_cutout[1390:1470], x=time_cutout[1390:1470], a=1.e-5, b=7.e-11, c=0.1)
 # plt.plot(time_cutout[1390:1470], exp_fit.best_fit)
+plt.show()
+
+plt.plot(time_array, vinput - offset(vin), zorder=1, label="Input (centered)")  #  - offset(iin)
+plt.plot(time_array, vout - offset(vout), zorder=2, label="Output (centered)")  #  - offset(iout)
+plt.legend()
+plt.xlabel("Time (s)")
+plt.ylabel("Voltage (V)")
+plt.tight_layout()
+plt.grid()
+plt.savefig(f"ic_results/ic_voltage.png")
+plt.show()
+'''
+
+'''
+df_base = pd.read_csv("LG_LJ_Ratio_to_Phase.csv")
+plt.plot(df_base["Ratio"], df_base["Phase"])
+plt.plot(loop_df["l2_mag"]/calc_lj(ic), np.pi - np.abs(np.pi + np.array(results_dict["phase_avg"])), ".")
+plt.xlabel("L2/LJ ratio")
+plt.ylabel("Final phase")
+plt.tight_layout()
+plt.grid()
 plt.show()
 '''
