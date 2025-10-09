@@ -82,6 +82,66 @@ plt.tight_layout()
 plt.show()
 
 '''
+# for voltage source
+l = 2.25e-10
+c = 2.2515818587186175e-08
+k = 0.5773502691896257
+omega = 2*np.pi*5e7
+freqs = np.linspace(3.e7, 7.e7, 401)
+pin_list = []
+pin_bfe_list = []
+pin_nbfe_list = []
+pout_list = []
+pout_bfe_list = []
+pout_nbfe_list = []
+
+for freq in freqs:
+    omega = freq*2*np.pi
+    z1 = 50 + (1-k)*l*omega*1j
+    z2 = 1/(1/z1 + 1/(k*l*omega*1j))
+    z3 = z2 + (2-k)*l*omega*1j - 1j/(omega*c)
+    v = 1
+    v1 = v*np.abs(z2)/np.abs(z3)
+    vout = v1*50/np.abs(z1)
+    i = v/np.abs(z3)
+    iout = i*np.abs(k*l*omega*1j/(50 + l*omega*1j))
+    z3_ = z2 -k*l*omega*1j
+    v1_ = v*np.abs(z2)/np.abs(z3_)
+    vout_ = v1_*50/np.abs(z1)
+    i_ = v/np.abs(z3_)
+    iout_ = i_*np.abs(k*l*omega*1j/(50 + l*omega*1j))
+    z3__ = z2 + (2-k)*l*omega*1j
+    v1__ = v*np.abs(z2)/np.abs(z3__)
+    vout__ = v1__*50/np.abs(z1)
+    i__ = v/np.abs(z3__)
+    iout__ = i__*np.abs(k*l*omega*1j/(50 + l*omega*1j))
+    pin_list.append(v*i)
+    pin_bfe_list.append(v*i_)
+    pin_nbfe_list.append(v*i__)
+    pout_list.append(vout*iout)
+    pout_bfe_list.append(vout_*iout_)
+    pout_nbfe_list.append(vout__*iout__)
+
+
+pin_list = np.array(pin_list)
+pin_bfe_list = np.array(pin_bfe_list)
+pin_nbfe_list = np.array(pin_nbfe_list)
+pout_list = np.array(pout_list)
+pout_bfe_list = np.array(pout_bfe_list)
+pout_nbfe_list = np.array(pout_nbfe_list)
+plt.plot(freqs, np.log10(pout_list/pin_list)*10, "b--", label="Resonant")
+plt.plot(freqs, np.log10(pout_bfe_list/pin_bfe_list)*10, "g--", label="Bode-Fano")
+plt.plot(freqs, np.log10(pout_nbfe_list/pin_nbfe_list)*10, "r--", label="No Bode-Fano")
+plt.grid()
+plt.legend()
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Output/Input (dB)")
+plt.tight_layout()
+plt.savefig("ic_results/expected_transfer.png")
+plt.show()
+'''
+
+'''
 df_bf = pd.read_csv("ic_results/IndCancel_couple_out_rout2_data.csv")
 df_nobf = pd.read_csv("ic_results/IndCancel_couple_out_rout_nobodefano_data.csv")
 df_res = pd.read_csv("ic_results/IndCancel_couple_out_resonant_rout_nobodefano_data.csv")
