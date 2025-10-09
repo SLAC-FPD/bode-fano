@@ -83,7 +83,7 @@ plt.show()
 
 '''
 # for voltage source
-v=1e-10
+v = 1e-10
 l = 2.25e-10
 c = 2.2515818587186175e-08
 k = 0.5773502691896257
@@ -101,7 +101,6 @@ for freq in freqs:
     z1 = 50 + (1-k)*l*omega*1j
     z2 = 1/(1/z1 + 1/(k*l*omega*1j))
     z3 = z2 + (2-k)*l*omega*1j - 1j/(omega*c)
-    v = 1
     v1 = v*np.abs(z2)/np.abs(z3)
     vout = v1*50/np.abs(z1)
     i = v/np.abs(z3)
@@ -139,6 +138,94 @@ plt.xlabel("Frequency (Hz)")
 plt.ylabel("Output/Input (dB)")
 plt.tight_layout()
 plt.savefig("ic_results/expected_transfer.png")
+plt.show()
+
+plt.plot(freqs, pin_list, "b--", label="Resonant")
+plt.plot(freqs, pin_bfe_list, "g--", label="Bode-Fano")
+plt.plot(freqs, pin_nbfe_list, "r--", label="No Bode-Fano")
+plt.grid()
+plt.legend()
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Input Power (AU)")
+plt.yscale("log")
+plt.tight_layout()
+plt.savefig("ic_results/expected_input.png")
+plt.show()
+
+plt.plot(freqs, pout_list, "b--", label="Resonant")
+plt.plot(freqs, pout_bfe_list, "g--", label="Bode-Fano")
+plt.plot(freqs, pout_nbfe_list, "r--", label="No Bode-Fano")
+plt.grid()
+plt.legend()
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Output Power (AU)")
+plt.yscale("log")
+plt.tight_layout()
+plt.savefig("ic_results/expected_output.png")
+plt.show()
+
+'''
+zadd_titles = ["Bode-Fano", "Resonant", "No Bode-Fano"]  # "Bode-Fano (Best)", 
+line_colors = {"Bode-Fano": "g--", "Resonant": "b--", "No Bode-Fano": "r--"}
+
+df_bf = pd.read_csv("ic_results/IndCancel_voltage_source_rout_data.csv")
+df_nobf = pd.read_csv("ic_results/IndCancel_voltage_source_rout_nobodefano_data.csv")
+df_res = pd.read_csv("ic_results/IndCancel_voltage_source_resonant_rout_nobodefano_data.csv")
+
+dfs = {"Bode-Fano": df_bf, "Resonant": df_res, "No Bode-Fano": df_nobf}
+
+for zadd_key in zadd_titles:
+    freqs_df = dfs[zadd_key]["i1_freq"].to_numpy()
+    p_ins_df = dfs[zadd_key]["pin_fft"].to_numpy()
+    p_outs_df = dfs[zadd_key]["pout_fft"].to_numpy()
+    p_transfers_df = np.log10(p_outs_df/p_ins_df)*10
+    phases_df = df_bf["phase_avg"].to_numpy()
+    plt.plot(freqs_df, p_outs_df, line_colors[zadd_key], label=zadd_key)
+
+# plt.rcParams.update({'font.size': 22})
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Output Power (AU)")  # Power Transfer (dB)")  # Phase (rad)")  # 
+plt.yscale("log")
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig("ic_results/reality_output.png")
+plt.show()
+
+for zadd_key in zadd_titles:
+    freqs_df = dfs[zadd_key]["i1_freq"].to_numpy()
+    p_ins_df = dfs[zadd_key]["pin_fft"].to_numpy()
+    p_outs_df = dfs[zadd_key]["pout_fft"].to_numpy()
+    p_transfers_df = np.log10(p_outs_df/p_ins_df)*10
+    phases_df = df_bf["phase_avg"].to_numpy()
+    plt.plot(freqs_df, p_ins_df, line_colors[zadd_key], label=zadd_key)
+
+# plt.rcParams.update({'font.size': 22})
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Input Power (AU)")  # Power Transfer (dB)")  # Phase (rad)")  # 
+plt.yscale("log")
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig("ic_results/reality_input.png")
+plt.show()
+
+for zadd_key in zadd_titles:
+    freqs_df = dfs[zadd_key]["i1_freq"].to_numpy()
+    p_ins_df = dfs[zadd_key]["pin_fft"].to_numpy()
+    p_outs_df = dfs[zadd_key]["pout_fft"].to_numpy()
+    p_transfers_df = np.log10(p_outs_df/p_ins_df)*10
+    phases_df = df_bf["phase_avg"].to_numpy()
+    plt.plot(freqs_df, p_transfers_df, line_colors[zadd_key], label=zadd_key)
+
+# plt.rcParams.update({'font.size': 22})
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Output/Input (dB)")  # Phase (rad)")  # 
+plt.legend()
+plt.grid()
+plt.tight_layout()
+# plt.ylim(-42, 2)
+plt.savefig("ic_results/reality_transfer.png")
 plt.show()
 '''
 
