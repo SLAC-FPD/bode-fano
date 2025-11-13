@@ -290,11 +290,9 @@ removem;i(l4)
 addm;i(lout)
 end
 
-var;voltage_source_resonant
+var;voltage_source_output
 add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
-remove;l1
-remove;k1
-add;c1 2 6 {c1_mag}
+change;l1 2 6 {l1_mag}
 change;lb 0 7 {lb_mag}
 add;lout 7 0 {lout_mag}
 remove;i1
@@ -303,6 +301,58 @@ addm;v(6)-v(2)
 addm;v(0)-v(7)
 removem;i(l4)
 addm;i(lout)
+end
+
+var;voltage_source_rout
+add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+change;l1 2 6 {l1_mag}
+change;lb 0 7 {lb_mag}
+remove;i1
+removem;v(0)-v(2)
+addm;v(6)-v(2)
+addm;v(0)-v(7)
+removem;i(l4)
+add;rout 7 0 {r2_mag}
+end
+remove;rout
+
+var;voltage_source_rout_special
+add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+change;l1 2 6 {l1_mag}
+change;lb 0 7 {lb_mag}
+change;b1 3 4 101 {model} ics={ics1_mag} phi=3.141592653589793
+change;idc 5 0 0
+add;rout 7 0 {r2_mag}
+remove;i1
+removem;v(0)-v(2)
+addm;v(6)-v(2)
+addm;v(0)-v(7)
+removem;i(l4)
+end
+remove;b1
+add;lx 3 4 0
+removem;v(101)
+add;v1 0 1 pulse(0 {i1_mag} 5e-11)
+remove;l0
+add;rx 1 2 2e-5
+change;k0 la lb 0
+add;.ic v(0)=0 v(1)=0 v(2)=0 v(6)=0
+
+var;voltage_source_resonant_rout
+add;v1 0 1 ac sin({i1_phase} {i1_mag} {i1_freq})
+remove;l1
+remove;k1
+add;c1 2 6 {c1_mag}
+change;lb 0 7 {lb_mag}
+add;rout 7 0 {r2_mag}
+remove;i1
+remove;b1
+add;lx 3 4 0
+removem;v(0)-v(2)
+removem;v(101)
+addm;v(6)-v(2)
+addm;v(0)-v(7)
+removem;i(l4)
 end
 
 #NOTES
