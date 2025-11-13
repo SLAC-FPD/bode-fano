@@ -13,7 +13,7 @@ cd = CircuitData()
 template = "ind_cancel"  # "imp_match"  # "kent"  # 
 param_file = "params/ind_cancel_params_251029.txt"  # "params/imp_match_params_250703.txt"  # "params/kent_params_250513.txt"  # None  # 
 variation = "voltage_source_rout_special"  # "couple_out_rout_parallel"  # "basic_match"  # "series_rlc"  # _resonant"  # "voltage_source_output"  # "v_bias_cancel"  # None  # 
-no_bodefano = False  # True  # 
+no_bodefano = True  # 
 no_r_jj = False
 no_c_jj = False
 phase_bias = False
@@ -71,9 +71,9 @@ round_digits = np.floor(np.log10(freq)) + 1
 idc = 1.0339169242309647e-05  # 0  # to current bias to pi
 if idc == 0: mode += "_nojjbias"
 
-step_time = 10**(-(round_digits+3)) / 100 # / 100  # * 10
+step_time = 10**(-(round_digits+3)) / 1000 # / 100  # * 10
 idx_ringing = 0  # 20000  # 50000  # 1000000  # 100 # if needed to remove
-npts = 100000 # 100000  # 1000000 if need to go three digits accurate
+npts = 10000 # 100000  # 1000000 if need to go three digits accurate
 if "resonant" in variation:
     step_time *= 10
     idx_ringing = npts
