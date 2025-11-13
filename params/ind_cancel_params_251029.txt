@@ -39,6 +39,7 @@ l3_mag,1e-13
 l4_mag,1e-7
 k2_mag,1
 idc_mag,1.0339192e-05
+idc_mag_base,1.03391816493128e-5
 idc_mag_base,1.0339169242309647e-05
 
 tran_step,1e-12
