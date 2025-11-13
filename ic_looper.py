@@ -11,8 +11,8 @@ cd = CircuitData()
 
 # what do we want to do
 template = "ind_cancel"  # "imp_match"  # "kent"  # 
-param_file = "params/ind_cancel_params_251006.txt"  # "params/imp_match_params_250703.txt"  # "params/kent_params_250513.txt"  # None  # 
-variation = "voltage_source_equiv_rout"  # "couple_out_rout_parallel"  # "basic_match"  # "series_rlc"  # _resonant"  # "voltage_source_output"  # "v_bias_cancel"  # None  # 
+param_file = "params/ind_cancel_params_251029.txt"  # "params/imp_match_params_250703.txt"  # "params/kent_params_250513.txt"  # None  # 
+variation = "voltage_source_rout_special"  # "couple_out_rout_parallel"  # "basic_match"  # "series_rlc"  # _resonant"  # "voltage_source_output"  # "v_bias_cancel"  # None  # 
 no_bodefano = False  # True  # 
 no_r_jj = False
 no_c_jj = False
@@ -23,8 +23,8 @@ get_fft_data = True
 draw_plots = False  # True  # 
 mode = ""
 
-loop_param = "i1_freq"  # "idc_mag"  # "l1_mag"  # "c1_offset"  # None  # "l1_mag"  # None  # triggers looper if not None
-loop_list = [5.e7]  # np.linspace(1.0339169242309647e-05*0.9999, 1.0339169242309647e-05*1.0001, 21)  # np.linspace(4.75e7, 5.25e7, 51)  # np.linspace(1.e7, 1.e8, 451)  # 
+loop_param = "i1_mag"  # "i1_freq"  # "idc_mag"  # "c1_offset"  # None  # "l1_mag"  # None  # triggers looper if not None
+loop_list = [1e-15]  # np.logspace(-5, -15, 11)  # np.linspace(1e-13, 1e-7, 100)  # np.linspace(3.e7, 7.e7, 41)  # np.linspace(1e7, 10e7, 91)  # [5.e7]  # [1.03391816493128e-5]  # np.linspace(1.0339169242309647e-05*0.99999, 1.0339169242309647e-05*1.00001, 101)  # np.linspace(1.0339152e-05, 1.0340152e-05, 11)  # np.linspace(4.75e7, 5.25e7, 51)  # np.linspace(1.e7, 1.e8, 451)  # 
 # np.linspace(1e6, 1e8, 1000)  # None  # np.linspace(3.8811684020319137e-10*0.9, 3.8811684020319137e-10*1.1, 3)  # 
 
 loop_params_file = None  # "ic_results/loop_params_3.csv"  # 
@@ -71,9 +71,9 @@ round_digits = np.floor(np.log10(freq)) + 1
 idc = 1.0339169242309647e-05  # 0  # to current bias to pi
 if idc == 0: mode += "_nojjbias"
 
-step_time = 10**(-(round_digits+3))  # / 100  # * 10
-idx_ringing = 20000  # 0  # 50000  # 1000000  # 100 # if needed to remove
-npts = 1000000 # 100000  # 1000000 if need to go three digits accurate
+step_time = 10**(-(round_digits+3)) / 100 # / 100  # * 10
+idx_ringing = 0  # 20000  # 50000  # 1000000  # 100 # if needed to remove
+npts = 100000 # 100000  # 1000000 if need to go three digits accurate
 if "resonant" in variation:
     step_time *= 10
     idx_ringing = npts
@@ -222,7 +222,7 @@ elif "voltage_source" in variation:
     cd.change_param("lout_mag", loutput)
     vcancel_tag = "v(6)-v(2)"
     vinput_tag = "v(1)-v(0)"
-    vout_tag = "v(0)-v(7)"
+    vout_tag = "v(0)-v(6)"
     voutput_tag = "v(0)-v(7)"
     iin_tag = "i(la)"
     iloop_tag = "i(la)"
@@ -333,7 +333,7 @@ for loop_val in loop_list:
 
     if "voltage_source" in variation and draw_plots:
         plt.plot(time_array, vin, label="Input voltage")
-        plt.plot(time_array, vbase, label="Inductance to cancel")
+        plt.plot(time_array, vbase + vout, label="Inductance to cancel")  # + vout
         plt.plot(time_array, vcancel, label="Inductance canceling device")
         # plt.plot(time_array, vout, label="Output voltage")
         plt.xlabel("Time (s)")
@@ -381,7 +381,7 @@ for loop_val in loop_list:
             vin_freq, vin_voltage = do_fft(time_array, vin)
             try: comp_idx = np.where(np.round(vin_freq) == freq)[0][0]
             except IndexError: comp_idx = np.where(vin_voltage == np.max(vin_voltage))[0][0]
-            vout_freq, vout_voltage = do_fft(time_array, vout)
+            vout_freq, vout_voltage = do_fft(time_array, voutput)
             if draw_plots:
                 start_idx = np.min([1, comp_idx-5])
                 plt.plot(vin_freq[start_idx:comp_idx+5], vin_voltage[start_idx:comp_idx+5], label="Input voltage")
@@ -422,12 +422,15 @@ for loop_val in loop_list:
             print(f"Max FFT freq at: {ifreq_fft}")
             if "rout" in variation:
                 vin_freq, vin_voltage = do_fft(time_array, vin)
-                vout_freq, vout_voltage = do_fft(time_array, vout)
+                vout_freq, vout_voltage = do_fft(time_array, voutput)
                 vfreq_fft = vin_freq[comp_idx]
                 vin_fft = vin_voltage[comp_idx]
                 vout_fft = vout_voltage[comp_idx]
                 pin_freq, pin_power = do_fft(time_array, vin*iin)
-                pout_freq, pout_power = do_fft(time_array, vout*iout)
+                pout_freq, pout_power = do_fft(time_array, voutput*iout)
+                try: comp_idx = np.where(np.round(pin_freq) == 2*freq)[0][0]  # because power multiplies two sinusoids
+                except IndexError: comp_idx = np.where(pin_power == np.max(pin_power))[0][0]
+                start_idx = np.min([1, comp_idx-5])
                 pfreq_fft = pin_freq[comp_idx]
                 pin_fft = pin_power[comp_idx]
                 pout_fft = pout_power[comp_idx]
@@ -454,7 +457,7 @@ for loop_val in loop_list:
         rin = cd.params["rin_mag"]
         rout = cd.params["rout_mag"]
         energy_in = amplitude(vin)**2 / rin
-        energy_out = amplitude(vout)**2 / rout
+        energy_out = amplitude(voutput)**2 / rout
         energy_in_fft = vin_fft**2 / rin
         energy_out_fft = vout_fft**2 / rout
         # print(f"INPUT INDUCTANCE COMPARISON - ACTUAL INPUT: {lin}, EFFECTIVE INPUT: {leff}\n\n")  #  make equivalent?
@@ -569,7 +572,7 @@ if get_fft_data and loop_param is not None:
     elif type(loop_param) == list: ax1.set_xlabel("Safeness")  # "Weirdness")  # "Index Number")  # 
     else: ax1.set_xlabel(loop_param)
     ax1.set_ylabel('Energy (AU)', color="blue")
-    # ax1.set_xscale("log")  # if linear looks bad
+    ax1.set_xscale("log")  # if linear looks bad
     ax1.set_yscale("log")  # if linear looks bad
     # ax1.plot(vna_freq, vna_in, "g--", label="Input Energy")
     # ax1.plot(vna_freq, vna_out, "b--", label="Output Energy")
