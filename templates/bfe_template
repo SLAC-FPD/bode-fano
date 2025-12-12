@@ -1,0 +1,123 @@
+#TEMPLATE
+Bode-Fano Evasion Test Circuit
+
+#PARAMS
+v1_phase,0
+v1_mag,1e-15
+v1_freq,50000000
+
+lin_mag,4e-10
+kin_mag,0.5
+
+l0_mag,4e-10
+l5_mag,1e-13
+
+l1_mag,3e-10
+l2_mag,3e-10
+k1_mag,0.3
+
+lout_mag,1e-13
+kout_mag,1
+rout_mag,50
+l6_mag,0
+
+ics1_mag,1.0e-6
+phi1_mag,0
+
+c1_mag,2e-10
+c1_offset,0
+
+l3_mag,1e-13
+l4_mag,1e-7
+kdc_mag,1
+idc_mag,1.0339169242309647e-05
+
+model,jj1
+level,1
+icrit_mag,1.0e-6
+cpic_mag,0.7e-9
+rtype,1
+vm_mag,16.5e-3
+
+tran_step,1e-12
+tran_stop,1e-9
+tran_start,0e-9
+maxdata,1024000
+filename,BFE
+
+#MEASURABLES
+i(lin) v(1)-v(0) i(l0) v(2)-v(0) v(3)-v(2) v(0)-v(3) i(l2) v(4)-v(0) v(5)-v(4) v(101) i(lout) v(7)-v(0) v(8)-v(0)
+
+#CIRCUIT
+Bode-Fano Evasion Test Circuit
+.model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag}, rtype={rtype})
+
+v1 0 1 ac sin({v1_phase} {v1_mag} {v1_freq})
+lin 1 0 {lin_mag}
+kin lin l0 {kin_mag}
+
+l0 0 2 {l0_mag}
+l1 2 3 {l1_mag}
+l5 3 0 {l5_mag}
+
+k1 l1 l2 {k1_mag}
+l2 0 4 {l2_mag}
+b1 4 5 101 {model} ics={ics1_mag} phi={phi1_mag}
+l3 5 0 {l3_mag}
+
+kdc l3 l4 {kdc_mag}
+l4 0 6 {l4_mag}
+idc 6 0 {idc_mag}
+
+kout l5 lout {kout_mag}
+lout 0 7 {lout_mag}
+l6_mag 7 8 {l6_mag}
+rout 8 0 {rout_mag}
+
+.tran {tran_step} {tran_stop} {tran_start} uic 
+.control
+devload all
+set maxdata={maxdata}
+run
+write {filename}.txt {measurables}
+.endc
+
+#VARIATIONS
+var;no_bfe
+removem;v(5)-v(4)
+removem;v(4)-v(0)
+removem;v(101)
+removem;i(l2)
+remove;k1
+remove;l2
+remove;b1
+remove;l3
+remove;l4
+remove;idc
+remove;kdc
+change;l1 2 3 0
+end
+note;l1 is not removed to make things consistent with other stuff
+
+var;resonant
+removem;v(5)-v(4)
+removem;v(4)-v(0)
+removem;v(101)
+removem;i(l2)
+remove;k1
+remove;l2
+remove;b1
+remove;l3
+remove;l4
+remove;idc
+remove;kdc
+remove;l1
+add;c1 2 3 {c1_mag}
+end
+
+var;phase_bias
+change;l3 5 0 0
+remove;l4
+remove;idc
+remove;kdc
+note;remove the small coupled dc bias input thing
