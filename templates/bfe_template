@@ -7,6 +7,7 @@ v1_mag,1e-15
 v1_freq,50000000
 
 lin_mag,4e-10
+rin_mag,2e-5
 kin_mag,0.5
 
 l0_mag,4e-10
@@ -53,7 +54,8 @@ Bode-Fano Evasion Test Circuit
 .model {model} jj(level={level}, icrit={icrit_mag}, cpic={cpic_mag}, vm={vm_mag}, rtype={rtype})
 
 v1 0 1 ac sin({v1_phase} {v1_mag} {v1_freq})
-lin 1 0 {lin_mag}
+lin 1 9 {lin_mag}
+rin 9 0 {rin_mag}
 kin lin l0 {kin_mag}
 
 l0 0 2 {l0_mag}
@@ -71,7 +73,7 @@ idc 6 0 {idc_mag}
 
 kout l5 lout {kout_mag}
 lout 0 7 {lout_mag}
-l6_mag 7 8 {l6_mag}
+l6 7 8 {l6_mag}
 rout 8 0 {rout_mag}
 
 .tran {tran_step} {tran_stop} {tran_start} uic 
@@ -83,6 +85,40 @@ write {filename}.txt {measurables}
 .endc
 
 #VARIATIONS
+var;parallel_resonant
+removem;v(5)-v(4)
+removem;v(4)-v(0)
+removem;v(101)
+removem;i(l2)
+remove;k1
+remove;l2
+remove;b1
+remove;l3
+remove;l4
+remove;idc
+remove;kdc
+remove;l1
+remove;kout
+remove;l6
+remove;l5
+removem;v(7)-v(0)
+removem;v(3)-v(2)
+removem;v(0)-v(3)
+add;c1 2 0 {c1_mag}
+change;lout 2 8 {lout_mag}
+end
+
+var;parallel_bfe
+remove;kout
+remove;l6
+remove;l5
+removem;v(7)-v(0)
+removem;v(3)-v(2)
+removem;v(0)-v(3)
+change;l1 2 0 {l1_mag}
+change;lout 2 8 {lout_mag}
+end
+
 var;no_bfe
 removem;v(5)-v(4)
 removem;v(4)-v(0)
@@ -114,10 +150,59 @@ remove;kdc
 remove;l1
 add;c1 2 3 {c1_mag}
 end
+add;.ic v(2)={c1_offset}
 
 var;phase_bias
 change;l3 5 0 0
 remove;l4
 remove;idc
 remove;kdc
+end
 note;remove the small coupled dc bias input thing
+
+var;simple_lc
+remove;lin
+remove;kin
+remove;l1
+remove;l5
+remove;k1
+remove;l2
+remove;b1
+remove;l3
+remove;kdc
+remove;l4
+remove;idc
+remove;kout
+remove;lout
+remove;l6
+remove;rout
+removem;i(lin)
+removem;i(l2)
+removem;v(4)-v(0)
+removem;v(5)-v(4)
+removem;v(101)
+removem;i(lout)
+removem;v(7)-v(0)
+removem;v(8)-v(0)
+change;v1 0 1 ac sin({v1_phase} {v1_mag} {v1_freq})
+change;l0 1 2 {l0_mag}
+add;c1 2 3 {c1_mag}
+addm;v(2)-v(1)
+addm;v(3)-v(2)
+addm;v(0)-v(3)
+add;rout 3 0 {rout_mag}
+add;.ic v(1)=0 v(2)={c1_offset}
+end
+add;lout 3 0 0
+note;for verification purposes
+
+#NOTES
+lin 1 0 {lin_mag}
+
+lin 1 9 {lin_mag}
+rin 9 0 {rin_mag}
+
+l0 0 2 {l0_mag}
+
+l0 0 9 {l0_mag}
+rin 9 2 {rin_mag}
