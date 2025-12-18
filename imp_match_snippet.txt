@@ -1,0 +1,54 @@
+zin = 0.06283185307179585  #  ???
+
+
+omega = 5.e7 * 2 * np.pi
+
+rout = 50
+lout = 1e-12  # this is chosen, decides everything else based on 50 ohm term.
+zout = 0.00031415926535897925  # lout*omega
+qout = 159154.94309189537  # rout/zout
+r_v = 1.9739208801399436e-09  # rout/(qout**2 + 1)
+zout_cancel = -0.00031415926534657674 # qout*r_v
+
+rin = 2e-5  # flexible
+qin = 100.6534567942591  # np.sqrt(rin / r_v - 1)
+zin = 1.987015710834556e-07  # rin / qin
+zin_cancel = 1.9868196002445172e-07  # qin*r_v
+
+# base circuit
+omega = 5.e7 * 2 * np.pi
+rout = 50
+rin = 1
+qout = 100
+zout = rout / qout
+lout = zout / omega
+r_v = rout / (qout**2 + 1)
+zout_cancel = qout * r_v
+qin = np.sqrt(rin/r_v - 1)
+zin = rin/qin
+lin = zin/omega
+zin_cancel = qin*r_v
+
+zcancel = zout_cancel + zin_cancel
+print(lin, lout, zcancel/omega, 1/(zcancel*omega))
+
+ccancel = 1/((zin + zout + zcancel)*omega)
+
+# parallel resistor
+omega = 5.e7 * 2 * np.pi
+rout = 50
+rin = 5
+qout = 500
+zout = rout / qout
+cout = 1 / (zout*omega)  # this is actually the component that cancels!
+lout = -zout/omega  # if using bode-fano
+r_v = rout / (qout**2 + 1)
+zout_cancel = qout * r_v  # this is the opposite sign cancel for cout, an inductor
+qin = np.sqrt(rin/r_v - 1)
+zin = rin/qin
+lin = zin/omega  # this is the "input" inductor
+zin_cancel = qin*r_v  # this is the opposite sign cancel for lin, a capacitor
+zmiddle = zout_cancel - zin_cancel  # this is the net impedance for the middle component in pi-circuit, zout_cancel > zin_cancel
+lmiddle = zmiddle/omega
+k = 1/(1 + lmiddle/lin)  # assumes coupled inductors are same magnitude
+print(lin, lmiddle, cout, lout, k, lin+lmiddle)
