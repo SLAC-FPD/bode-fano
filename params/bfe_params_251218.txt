@@ -34,8 +34,8 @@ c1_offset,0
 l3_mag,1e-14
 l4_mag,1e-6
 kdc_mag,1
-idc_mag,0
-idc_mag_base,1.0339169242309647e-05
+idc_mag_base,0
+idc_mag,1.0339169242309647e-05
 
 model,jj1
 level,1
