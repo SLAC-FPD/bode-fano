@@ -52,3 +52,117 @@ zmiddle = zout_cancel - zin_cancel  # this is the net impedance for the middle c
 lmiddle = zmiddle/omega
 k = 1/(1 + lmiddle/lin)  # assumes coupled inductors are same magnitude
 print(lin, lmiddle, cout, lout, k, lin+lmiddle)
+
+# get optimized bfe params (100% cancel)
+lcancel = -3.1830988618379075e-10  # -3.183126393426777e-10  # 
+lj = calc_lj(1.0e-6, np.pi)
+l2_list = np.linspace(3.3e-10, 4.0e-10, 701)
+k1_list = [0.3]  # np.linspace(0.2, 0.35, 16)
+params_dict = {"l1_mag":[], "l2_mag":[], "k1_mag":[]}
+
+for l2 in l2_list:
+    for k1 in k1_list:
+        raw_lcancel = 1 - l2 * k1**2 / (lj + l2)
+        if raw_lcancel > 0: continue  # can't cancel
+        l1 = lcancel / raw_lcancel
+        if np.abs(l1/l2 - 1) > 0.1: continue  # l1, l2 too different
+        params_dict["l1_mag"].append(l1)
+        params_dict["l2_mag"].append(l2)
+        params_dict["k1_mag"].append(k1)
+        # print(l1, l2, k1, l1/l2 - 1)
+
+print(len(params_dict["l1_mag"]))
+df = pd.DataFrame(params_dict)
+df.to_csv("ic_results/loop_params.csv", header=True, index=False)
+
+# compare power transfer between plots
+plt.rcParams.update({'font.size': 22, "figure.figsize": "14, 10"})
+
+zadd_titles = ["Non-Foster match", "Capacitive match", "No match"]  # "Bode-Fano (Best)", 
+line_colors = {"Non-Foster match": "g--.", "Capacitive match": "b--.", "No match": "r--."}
+
+df_bf = pd.read_csv("ic_results/ic_results_parallel_bfe_data_comp.csv")
+df_nobf = pd.read_csv("ic_results/ic_results_parallel_no_bfe_data_comp.csv")
+df_res = pd.read_csv("ic_results/ic_results_parallel_resonant_data_comp.csv")
+
+dfs = {"Non-Foster match": df_bf, "Capacitive match": df_res, "No match": df_nobf}
+
+phases_df = df_bf["phase_avg"].to_numpy()
+
+for zadd_key in zadd_titles:
+    freqs_df = dfs[zadd_key]["v1_freq"].to_numpy()
+    p_ins_df = dfs[zadd_key]["pin_sum"].to_numpy()
+    p_outs_df = dfs[zadd_key]["pout_sum"].to_numpy()
+    p_transfers_df = np.log10(p_outs_df/p_ins_df)*10
+    # choose what to plot below
+    plt.plot(freqs_df, p_outs_df, line_colors[zadd_key], label=zadd_key)
+
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Average Output Power (W)")  # Power Transfer (dB)")  # Phase (rad)")  # 
+# plt.yscale("log")
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig("ic_results/ic_power_output_comp.png")  # transfer_comp.png")
+plt.show()
+
+
+# compare voltage vs current in zero and pi bias
+from circuit_reader import *  # if using circuit_calcs.py
+
+cd_zero = CircuitData()
+cd_zero.filename = "ic_results/BFE_parallel_bfe_zerobias"
+cd_zero.read_results()
+
+cd_pi = CircuitData()
+cd_pi.filename = "ic_results/BFE_parallel_bfe_pibias"
+cd_pi.read_results()
+
+time_tag = "time"
+current_tag = "i(l1)"
+voltage_tag = "v(2)-v(0)"
+idx_ringing = 100000
+idx_interval = 10000
+
+time_zero = cd_zero.data[time_tag][idx_ringing:idx_ringing+idx_interval]
+current_zero = cd_zero.data[current_tag][idx_ringing:idx_ringing+idx_interval]
+voltage_zero = cd_zero.data[voltage_tag][idx_ringing:idx_ringing+idx_interval]
+
+fig, ax1 = plt.subplots()
+ax1.set_title("Josephson junction with zero phase bias")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Current (A)", color="blue")
+ax1.plot(time_zero, current_zero, label="Current", color="blue")
+# ax1.legend()
+ax1.tick_params(axis='y', labelcolor="blue")
+ax2 = ax1.twinx()
+ax2.set_ylabel("Voltage (V)", color="orange")
+ax2.plot(time_zero, voltage_zero, label="Voltage", color="orange")
+# ax2.legend()
+ax2.tick_params(axis='y', labelcolor="orange")
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.grid()
+plt.savefig(f"ic_results/ic_current_voltage_zerobias.png")
+plt.show()
+
+time_pi = cd_pi.data[time_tag][idx_ringing:idx_ringing+idx_interval]
+current_pi = cd_pi.data[current_tag][idx_ringing:idx_ringing+idx_interval]
+voltage_pi = cd_pi.data[voltage_tag][idx_ringing:idx_ringing+idx_interval]
+
+fig, ax1 = plt.subplots()
+ax1.set_title("Josephson junction phase biased to $\pi$")
+ax1.set_xlabel("Time (s)")
+ax1.set_ylabel("Current (A)", color="blue")
+ax1.plot(time_pi, current_pi, label="Current", color="blue")
+# ax1.legend()
+ax1.tick_params(axis='y', labelcolor="blue")
+ax2 = ax1.twinx()
+ax2.set_ylabel("Voltage (V)", color="orange")
+ax2.plot(time_pi, voltage_pi, label="Voltage", color="orange")
+# ax2.legend()
+ax2.tick_params(axis='y', labelcolor="orange")
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.grid()
+plt.savefig(f"ic_results/ic_current_voltage_pibias.png")
+plt.show()
+

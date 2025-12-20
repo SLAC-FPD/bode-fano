@@ -8,20 +8,21 @@ cd = CircuitData()  # create instance.
 # options
 template = "bfe"
 param_file = "params/bfe_params_251218.txt"  # None  # 
-variation = "parallel_bfe"  # "parallel_resonant"  # None  # "simple_lc"  # "no_bfe"  # 
+variation = "parallel_bfe"  # "parallel_resonant"  # "parallel_no_bfe"  # None  # "simple_lc"  # "no_bfe"  # 
 mode = ""
 if variation is not None: mode += f"_{variation}"
 
-loop_param = "v1_freq"  # "c1_offset"  # 
-loop_list = np.linspace(3e7, 7e7, 41)  # [5.e7]  # 
+loop_param = "v1_freq"  # "l2_mag"  # "idc_mag"  # "c1_offset"  # 
+loop_list = np.linspace(3e7, 7e7, 41)  # [5.e7]  # np.linspace(3.4489e-10, 3.4491e-10, 21)  # np.linspace(1.0339169242309647e-05*0.99999, 1.0339169242309647e-05*1.00001, 21)  # 
 loop_len = len(loop_list)
 
-# If looping over multiple params, use a dedicated file.
-loop_params_file = None  # "ic_results/loop_params_3.csv"  # 
+# If looping over multiple params, use a dedicated file. This overrides settings above.
+loop_params_file = None  # "ic_results/loop_params.csv"  # 
 if loop_params_file is not None:
     loop_df = pd.read_csv(loop_params_file)
     loop_param = list(loop_df.keys())
     loop_list = loop_df.to_numpy()
+    loop_len = len(loop_df[loop_param[0]])
 
 # initialize
 cd.read_template(template, param_file, variation)
@@ -30,9 +31,10 @@ cd.change_param("filename", cd.params["filename"] + mode)
 # time settings here
 freq = cd.params["v1_freq"]
 round_digits = np.floor(np.log10(freq)) + 1
-step_time = 10**(-(round_digits+3))*10 # / 100  # * 10  # multiply or divide to this value
+step_time = 10**(-(round_digits+3)) # / 100  # * 10  # multiply or divide to this value
 idx_ringing = 100000  # 0  # 20000  # to remove beginning of simulation. 2e4 is default
-npts = 100000 # 1e5 is default, 1e4 with step_time/100 for JJ ringing
+npts = 100000 # 1e5 is default, 2e3 with step_time/100 for JJ ringing
+# for resonant: step_time <=*10, npts >= 1e5
 start_time = 0  # change if needed
 stop_time = step_time * (npts + idx_ringing)
 cd.change_param("tran_step", step_time)
@@ -65,6 +67,7 @@ if "parallel" in variation:
 
 cur_loop_idx = 0
 results_dict = {f"{loop_param}": [], "pin_sum": [], "pout_sum": []}  # let's add to the dictionary if needed
+if variation is None or variation == "parallel_bfe": results_dict["phase_avg"] = []  # add phase to dictionary
 t1 = time.time()
 
 for loop_val in loop_list:
@@ -91,10 +94,12 @@ for loop_val in loop_list:
     vcancel_array = cd.data[vcancel_tag].to_numpy()[idx_ringing:]
     pin_array = iin_array * vin_array
     pout_array = iout_array * vout_array  # pout_array2 = vout_array ** 2 / cd.params["rout_mag"]
-    p_idx = int(np.round(1 / freq / step_time))
-    p_step = step_time*p_idx
-    pin_sum = np.abs(np.sum(pin_array[-p_idx:]) / p_step)
-    pout_sum = np.abs(np.sum(pout_array[-p_idx:]) / p_step)
+    p_idx_base = int(np.round(1 / freq / step_time))  # one frequency cycle
+    p_idx = p_idx_base
+    while p_idx_base + p_idx < len(time_array): p_idx = p_idx_base + p_idx  # assumes steady state
+    # p_step = step_time*p_idx
+    pin_sum = np.abs(np.sum(pin_array[-p_idx:]) / p_idx)
+    pout_sum = np.abs(np.sum(pout_array[-p_idx:]) / p_idx)
     '''
     pin_freq, pin_power = do_fft(time_array, vin_array*iin_array)
     pout_freq, pout_power = do_fft(time_array, vout_array*iout_array)
@@ -109,7 +114,7 @@ for loop_val in loop_list:
     results_dict["pin_sum"].append(pin_sum)
     results_dict["pout_sum"].append(pout_sum)
     
-    if loop_len <= 1:
+    if loop_len == 1:
         # Voltage plot
         # plt.plot(time_array, vin_array, label="Input voltage")
         plt.plot(time_array, vbase_array, label="Inductance to cancel")
@@ -150,6 +155,9 @@ for loop_val in loop_list:
         ijj_array = cd.data[ijj_tag].to_numpy()[idx_ringing:]
         vjj_array = cd.data[vjj_tag].to_numpy()[idx_ringing:]
         phase_array = cd.data[phase_tag].to_numpy()[idx_ringing:]
+        phase_avg = np.average(phase_array)
+        results_dict["phase_avg"].append(phase_avg)
+        print(f"Average phase: {phase_avg}")
         if loop_len <= 1:
             # JJ phase plot
             plt.plot(time_array, phase_array)
@@ -167,8 +175,13 @@ print(f"Full loop took {(t2 - t1)/60} minutes.")
 if loop_len > 1:
     pout_sum_list = np.array(results_dict["pout_sum"])
     pin_sum_list = np.array(results_dict["pin_sum"])
-    plt.plot(loop_list, power2dB(pout_sum_list/pin_sum_list), ".")
-    plt.xlabel("Frequency (Hz)")  # change if needed
+    if loop_params_file is not None: xparam = np.linspace(0, len(pout_sum_list)-1, len(pout_sum_list))
+    else: xparam = loop_list
+    plt.plot(xparam, power2dB(pout_sum_list/pin_sum_list), ".")
+    if loop_param == "v1_freq": loop_xlabel = "Frequency (Hz)"
+    elif loop_params_file is not None: loop_xlabel = "Configuration #"
+    else: loop_xlabel = loop_param
+    plt.xlabel(loop_xlabel)  # change if needed
     plt.ylabel("Power Transfer (dB)")
     plt.grid()
     plt.tight_layout()
@@ -177,17 +190,34 @@ if loop_len > 1:
     #'''
     pout_sum_list = np.array(results_dict["pout_sum"])
     pin_sum_list = np.array(results_dict["pin_sum"])
-    plt.plot(loop_list, pin_sum_list, ".", label="Input Power")
-    plt.plot(loop_list, pout_sum_list, ".", label="Output Power")
-    plt.xlabel("Frequency (Hz)")  # change if needed
+    plt.plot(xparam, pin_sum_list, ".", label="Input Power")
+    plt.plot(xparam, pout_sum_list, ".", label="Output Power")
+    plt.xlabel(loop_xlabel)  # change if needed
     plt.ylabel("Average Power (W)")
     plt.yscale("log")
+    plt.legend()
     plt.grid()
     plt.tight_layout()
     plt.savefig(f"ic_results/ic_power_sweep{mode}.png")
     plt.show()
     #'''
-
+    if variation is None or variation == "parallel_bfe":
+        phase_list = np.array(results_dict["phase_avg"])
+        plt.plot(xparam, phase_list, ".", label="Input Power")
+        plt.xlabel(loop_xlabel)  # change if needed
+        plt.ylabel("Average Phase (rad)")
+        plt.grid()
+        plt.tight_layout()
+        plt.savefig(f"ic_results/ic_phase_sweep{mode}.png")
+        plt.show()
+    # save data, for looped results
+    for key in results_dict.keys():  # remove empty, make sure first value is not empty
+        if len(results_dict[key]) == 0: results_dict[key] = np.zeros(keylen)
+        else: keylen = len(results_dict[key])
+    print("Saving Results.")
+    data_pd = pd.DataFrame(results_dict)  # if loops
+    data_pd.to_csv(f"ic_results/ic_results{mode}_data.csv", header=True, index=False)
+    
 # OLD STUFF
 '''
     if plot_jj_info and draw_plots:
