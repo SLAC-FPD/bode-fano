@@ -12,12 +12,14 @@ l0_mag,3.183126393426777e-10
 l0_mag_base,4.5126511529884e-10
 
 l1_mag_tocancel,-3.1830988618379075e-10
-l1_mag,2.32876063918011e-10
-l2_mag,3.421148974510287e-10
+l1_mag,3.29730458e-10
+l1_mag_init,2.32876063918011e-10
+l2_mag,3.44893e-10
+l2_mag_init,3.421148974510287e-10
 k1_mag,0.3
 
-lout_mag,0
-lout_mag_base,3.183098861837907e-09
+lout_mag_base,0
+lout_mag,3.183098861837907e-09
 kout_mag,0.5
 rout_mag,50
 
@@ -29,10 +31,11 @@ c1_mag_base_half,6.366197723675814e-09
 c1_mag_base,2.7888533480363913e-09
 c1_offset,0
 
-l3_mag,1e-13
-l4_mag,1e-7
+l3_mag,1e-14
+l4_mag,1e-6
 kdc_mag,1
-idc_mag,1.0339169242309647e-05
+idc_mag,0
+idc_mag_base,1.0339169242309647e-05
 
 model,jj1
 level,1
