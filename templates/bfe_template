@@ -55,7 +55,7 @@ Bode-Fano Evasion Test Circuit
 
 v1 0 1 ac sin({v1_phase} {v1_mag} {v1_freq})
 lin 1 9 {lin_mag}
-rin 9 0 {rin_mag}
+rin 9 0 {rin_mag} m=1
 kin lin l0 {kin_mag}
 
 l0 0 2 {l0_mag}
@@ -74,7 +74,7 @@ idc 6 0 {idc_mag}
 kout l5 lout {kout_mag}
 lout 0 7 {lout_mag}
 l6 7 8 {l6_mag}
-rout 8 0 {rout_mag}
+rout 8 0 {rout_mag} m=1
 
 .tran {tran_step} {tran_stop} {tran_start} uic 
 .control
@@ -140,6 +140,79 @@ removem;v(0)-v(3)
 addm;i(l1)
 change;l1 2 0 {l1_mag}
 change;lout 2 8 {lout_mag}
+end
+
+var;series_bfe
+remove;lin
+remove;kin
+change;rin 3 1 {rout_mag}
+change;l0 8 2 {l0_mag}
+remove;kout
+remove;l6
+remove;lout
+change;rout 0 8 {rin_mag}
+remove;l5
+removem;i(lin)
+removem;i(lout)
+removem;v(7)-v(0)
+addm;v(2)-v(8)
+end
+
+var;series_no_bfe
+removem;v(5)-v(4)
+removem;v(4)-v(0)
+removem;v(101)
+removem;i(l2)
+remove;k1
+remove;l2
+remove;b1
+remove;l3
+remove;l4
+remove;idc
+remove;kdc
+remove;lin
+remove;kin
+change;rin 3 1 {rout_mag}
+change;l0 8 2 {l0_mag}
+change;l1 2 3 0
+remove;kout
+remove;l6
+remove;lout
+change;rout 0 8 {rin_mag}
+remove;l5
+removem;i(lin)
+removem;i(lout)
+removem;v(7)-v(0)
+addm;v(2)-v(8)
+end
+
+var;series_resonant
+removem;v(5)-v(4)
+removem;v(4)-v(0)
+removem;v(101)
+removem;i(l2)
+remove;k1
+remove;l2
+remove;b1
+remove;l3
+remove;l4
+remove;idc
+remove;kdc
+remove;lin
+remove;kin
+change;rin 3 1 {rout_mag}
+change;l0 8 2 {l0_mag}
+remove;l1
+change;c1 2 3 {c1_mag}
+remove;kout
+remove;l6
+remove;lout
+change;rout 0 8 {rin_mag}
+remove;l5
+removem;i(lin)
+removem;i(lout)
+removem;v(7)-v(0)
+addm;v(2)-v(8)
 end
 
 var;no_bfe
