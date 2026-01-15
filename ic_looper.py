@@ -7,13 +7,13 @@ cd = CircuitData()  # create instance.
 
 # options
 template = "bfe"
-param_file = "params/bfe_params_251218.txt"  # None  # 
-variation = "parallel_bfe"  # "parallel_resonant"  # "parallel_no_bfe"  # None  # "simple_lc"  # "no_bfe"  # 
+param_file = "params/bfe_params_260114.txt"  # None  # 
+variation = "series_bfe" # "parallel_bfe  # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
 mode = ""
 if variation is not None: mode += f"_{variation}"
 
 loop_param = "v1_freq"  # "l2_mag"  # "idc_mag"  # "c1_offset"  # 
-loop_list = np.linspace(3e7, 7e7, 41)  # [5.e7]  # np.linspace(3.4489e-10, 3.4491e-10, 21)  # np.linspace(1.0339169242309647e-05*0.99999, 1.0339169242309647e-05*1.00001, 21)  # 
+loop_list = [5.e7]  # np.linspace(3e7, 7e7, 41)  # np.linspace(3.4489e-10, 3.4491e-10, 21)  # np.linspace(1.0339169242309647e-05*0.99999, 1.0339169242309647e-05*1.00001, 21)  # 
 loop_len = len(loop_list)
 
 # If looping over multiple params, use a dedicated file. This overrides settings above.
@@ -32,9 +32,10 @@ cd.change_param("filename", cd.params["filename"] + mode)
 freq = cd.params["v1_freq"]
 round_digits = np.floor(np.log10(freq)) + 1
 step_time = 10**(-(round_digits+3)) # / 100  # * 10  # multiply or divide to this value
-idx_ringing = 100000  # 0  # 20000  # to remove beginning of simulation. 2e4 is default
+idx_ringing = 0  # 0  # 20000  # to remove beginning of simulation. 2e4 is default
 npts = 100000 # 1e5 is default, 2e3 with step_time/100 for JJ ringing
 # for resonant: step_time <=*10, npts >= 1e5
+if "resonant" in variation: step_time *= 100
 start_time = 0  # change if needed
 stop_time = step_time * (npts + idx_ringing)
 cd.change_param("tran_step", step_time)
@@ -65,9 +66,15 @@ if "parallel" in variation:
     iout_tag = "i(lout)"
     vcancel_tag = "v(2)-v(0)"
 
+if "series" in variation:
+    iout_tag = "i(l0)"
+    iin_tag = "i(l0)"
+    vcancel_tag = "v(3)-v(2)"
+    vbase_tag = "v(2)-v(8)"
+
 cur_loop_idx = 0
 results_dict = {f"{loop_param}": [], "pin_sum": [], "pout_sum": []}  # let's add to the dictionary if needed
-if variation is None or variation == "parallel_bfe": results_dict["phase_avg"] = []  # add phase to dictionary
+if variation is None or ("_bfe" in variation and "_no" not in variation): results_dict["phase_avg"] = []  # add phase to dictionary
 t1 = time.time()
 
 for loop_val in loop_list:
@@ -151,7 +158,7 @@ for loop_val in loop_list:
         plt.show()
         '''
         
-    if variation is None or variation == "parallel_bfe":  # JJ related things are only added if they exist.
+    if variation is None or ("_bfe" in variation and "_no" not in variation):  # JJ related things are only added if they exist.
         ijj_array = cd.data[ijj_tag].to_numpy()[idx_ringing:]
         vjj_array = cd.data[vjj_tag].to_numpy()[idx_ringing:]
         phase_array = cd.data[phase_tag].to_numpy()[idx_ringing:]
