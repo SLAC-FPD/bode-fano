@@ -7,8 +7,8 @@ cd = CircuitData()  # create instance.
 
 # options
 template = "bfe"
-param_file = "params/bfe_params_260114.txt"  # None  # 
-variation = "series_bfe" # "parallel_bfe  # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
+param_file = "params/bfe_params_251218.txt"  # None  # 
+variation = "parallel_bfe_pulsed"  # "series_bfe" # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
 mode = ""
 if variation is not None: mode += f"_{variation}"
 
@@ -31,9 +31,9 @@ cd.change_param("filename", cd.params["filename"] + mode)
 # time settings here
 freq = cd.params["v1_freq"]
 round_digits = np.floor(np.log10(freq)) + 1
-step_time = 10**(-(round_digits+3)) # / 100  # * 10  # multiply or divide to this value
-idx_ringing = 0  # 0  # 20000  # to remove beginning of simulation. 2e4 is default
-npts = 100000 # 1e5 is default, 2e3 with step_time/100 for JJ ringing
+step_time = 10**(-(round_digits+3)) * 10 # / 100  # * 10  # multiply or divide to this value
+idx_ringing = 1000000  # 0  # 100000  # to remove beginning of simulation. 2e4 is default, 1e5 for paper
+npts = 1000000 # 1e5 is default, 2e3 with step_time/100 for JJ ringing
 # for resonant: step_time <=*10, npts >= 1e5
 if "resonant" in variation: step_time *= 100
 start_time = 0  # change if needed
