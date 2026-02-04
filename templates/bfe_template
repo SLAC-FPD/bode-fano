@@ -47,7 +47,7 @@ maxdata,1024000
 filename,BFE
 
 #MEASURABLES
-i(lin) v(1)-v(0) i(l0) v(2)-v(0) v(3)-v(2) v(0)-v(3) i(l2) v(4)-v(0) v(5)-v(4) v(101) i(lout) v(7)-v(0) v(8)-v(0)
+i(lin) v(1)-v(0) i(l0) v(2)-v(0) v(3)-v(2) v(0)-v(3) i(l2) v(4)-v(0) v(5)-v(4) v(101) i(lout) v(7)-v(0) v(8)-v(0) i(l4)
 
 #CIRCUIT
 Bode-Fano Evasion Test Circuit
@@ -140,6 +140,19 @@ removem;v(0)-v(3)
 addm;i(l1)
 change;l1 2 0 {l1_mag}
 change;lout 2 8 {lout_mag}
+end
+
+var;parallel_bfe_pulsed
+remove;kout
+remove;l6
+remove;l5
+removem;v(7)-v(0)
+removem;v(3)-v(2)
+removem;v(0)-v(3)
+addm;i(l1)
+change;l1 2 0 {l1_mag}
+change;lout 2 8 {lout_mag}
+change;idc 6 0 pulse({idc_mag} -{idc_mag} 0 0 0 0.5e-6 1e-6)
 end
 
 var;series_bfe
