@@ -47,7 +47,7 @@ maxdata,1024000
 filename,BFE
 
 #MEASURABLES
-i(lin) v(1)-v(0) i(l0) v(2)-v(0) v(3)-v(2) v(0)-v(3) i(l2) v(4)-v(0) v(5)-v(4) v(101) i(lout) v(7)-v(0) v(8)-v(0) i(l4)
+i(lin) v(1)-v(0) i(l0) v(2)-v(0) v(3)-v(2) v(0)-v(3) i(l2) v(4)-v(0) v(5)-v(4) v(101) i(lout) v(7)-v(0) v(8)-v(0)
 
 #CIRCUIT
 Bode-Fano Evasion Test Circuit
@@ -138,6 +138,7 @@ removem;v(7)-v(0)
 removem;v(3)-v(2)
 removem;v(0)-v(3)
 addm;i(l1)
+addm;i(l4)
 change;l1 2 0 {l1_mag}
 change;lout 2 8 {lout_mag}
 end
@@ -304,6 +305,30 @@ add;.ic v(1)=0 v(2)={c1_offset}
 end
 add;lout 3 0 0
 note;for verification purposes
+
+var;series_bfe_simple
+remove;lin
+remove;kin
+change;rin 3 1 {rout_mag}
+change;l0 4 3 {l0_mag}
+remove;kout
+remove;l6
+remove;lout
+change;rout 0 8 {rin_mag}
+change;l3 8 5 {l3_mag}
+remove;k1
+remove;l5
+remove;l1
+remove;l2
+removem;i(lin)
+removem;i(lout)
+removem;i(l2)
+removem;v(2)-v(0)
+removem;v(3)-v(2)
+addm;v(4)-v(3)
+addm;i(l4)
+removem;v(7)-v(0)
+end
 
 #NOTES
 lin 1 0 {lin_mag}
