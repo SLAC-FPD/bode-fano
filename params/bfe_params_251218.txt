@@ -18,8 +18,8 @@ l2_mag,3.44893e-10
 l2_mag_init,3.421148974510287e-10
 k1_mag,0.3
 
-lout_mag_base,0
-lout_mag,3.183098861837907e-09
+lout_mag_base,3.183098861837907e-09
+lout_mag,0
 kout_mag,0.5
 rout_mag,50
 
