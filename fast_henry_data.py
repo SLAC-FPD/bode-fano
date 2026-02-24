@@ -40,8 +40,10 @@ class FastHenryData:
                     self.l_mat[x_cnt][y_cnt] = float(line_spl[2*x_cnt + 1][:-1]) / (2*np.pi*freq) # inductances
                 y_cnt += 1
             else: pass
-        for cnt in range(n_inds):
-            self.inds[cnt + 1][0] = self.l_mat[cnt][cnt]
+        for y_cnt in range(n_inds):  # get inductances separately and create coupling constant matrix
+            self.inds[y_cnt + 1][0] = self.l_mat[y_cnt][y_cnt]
+            for x_cnt in range(n_inds):
+                    self.k_mat[x_cnt][y_cnt] = self.l_mat[x_cnt][y_cnt] / np.sqrt(self.l_mat[x_cnt][x_cnt] * self.l_mat[y_cnt][y_cnt])
         infile.close()
     
     def inductance_summary(self):
@@ -50,7 +52,7 @@ class FastHenryData:
             n_inds = len(self.inds.keys())
             for y_cnt in range(n_inds):
                 for x_cnt in range(n_inds):
-                    self.k_mat[x_cnt][y_cnt] = self.l_mat[x_cnt][y_cnt] / np.sqrt(self.l_mat[x_cnt][x_cnt] * self.l_mat[y_cnt][y_cnt])
+                    # self.k_mat[x_cnt][y_cnt] = self.l_mat[x_cnt][y_cnt] / np.sqrt(self.l_mat[x_cnt][x_cnt] * self.l_mat[y_cnt][y_cnt])
                     if x_cnt == y_cnt: print(f"{x_cnt + 1}: {self.inds[x_cnt + 1][1]} is {self.inds[x_cnt + 1][0]} H")
                     elif x_cnt > y_cnt: print(f"k_{x_cnt+1}{y_cnt+1} is {self.k_mat[x_cnt][y_cnt]}, M_{x_cnt+1}{y_cnt+1} is {self.l_mat[x_cnt][y_cnt]} H")
 
