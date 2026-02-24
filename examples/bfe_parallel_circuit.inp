@@ -1,0 +1,52 @@
+**non-foster circuit**
+.Default z=0 sigma=58000000.0
+
+
+Nin0 x=0 y=0
+Nin1 x=0 y=2.7e-05
+Nin2 x=0.00021 y=2.7e-05
+Nin3 x=0.00021 y=0
+
+Na0 x=0 y=4.1e-05
+Na1 x=0 y=6.8e-05
+Na2 x=0 y=9.999999999999999e-05
+Na3 x=0.00021 y=9.999999999999999e-05
+Na4 x=0.00021 y=6.8e-05
+Na5 x=0.00021 y=6.8e-05
+Na6 x=0.00021 y=4.1e-05
+
+Nb0 x=0 y=0.0001012
+Nb1 x=0 y=0.0001142
+Nb2 x=0.0001045 y=0.0001142
+Nb3 x=0.0001055 y=0.0001142
+Nb4 x=0.00021 y=0.0001142
+Nb5 x=0.00021 y=0.0001012
+
+Nout0 x=-8e-05 y=6.8e-05
+Nout1 x=0 y=6.8e-05
+Nout2 x=0.00021 y=6.8e-05
+Nout3 x=0.00029 y=6.8e-05
+
+Ein0 Nin0 Nin1 w=1e-06 h=1e-07
+Ein1 Nin1 Nin2 w=1e-06 h=1e-07
+Ein2 Nin2 Nin3 w=1e-06 h=1e-07
+Ea0 Na0 Na1 w=1e-06 h=1e-07
+Ea1 Na1 Na2 w=1e-06 h=1e-07
+Ea2 Na2 Na3 w=1e-06 h=1e-07
+Ea3 Na3 Na4 w=1e-06 h=1e-07
+Ea4 Na5 Na6 w=1e-06 h=1e-07
+Ea5 Na6 Na0 w=1e-06 h=1e-07
+Eb0 Nb0 Nb1 w=1e-06 h=1e-07
+Eb1 Nb1 Nb2 w=1e-06 h=1e-07
+Eb2 Nb3 Nb4 w=1e-06 h=1e-07
+Eb3 Nb4 Nb5 w=1e-06 h=1e-07
+Eb4 Nb5 Nb0 w=1e-06 h=1e-07
+Eout0 Nout0 Nout1 w=1e-06 h=1e-07
+Eout1 Nout2 Nout3 w=1e-06 h=1e-07
+.external Nin0 Nin3
+.external Na1 Na5
+.external Na1 Na4
+.external Nb2 Nb3
+.freq fmin=50000000.0 fmax=500000000.0 ndec=1
+
+.end
