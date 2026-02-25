@@ -33,6 +33,11 @@ l4_mag,1e-7
 kdc_mag,1
 idc_mag,1.0339169242309647e-05
 
+kin1_mag,0
+kin2_mag,0
+k01_mag,0
+k02_mag,0
+
 model,jj1
 level,1
 icrit_mag,1.0e-6
@@ -143,6 +148,23 @@ change;l1 2 0 {l1_mag}
 change;lout 2 8 {lout_mag}
 end
 
+var;parallel_bfe_realistic
+remove;kout
+remove;l6
+remove;l5
+removem;v(7)-v(0)
+removem;v(3)-v(2)
+removem;v(0)-v(3)
+addm;i(l1)
+addm;i(l4)
+change;l1 2 0 {l1_mag}
+change;lout 2 8 {lout_mag}
+add;kin1 lin l1 {kin1_mag}
+add;kin2 lin l2 {kin2_mag}
+add;k01 l0 l1 {k01_mag}
+add;k02 l0 l2 {k02_mag}
+end
+
 var;parallel_bfe_pulsed
 remove;kout
 remove;l6
@@ -151,6 +173,7 @@ removem;v(7)-v(0)
 removem;v(3)-v(2)
 removem;v(0)-v(3)
 addm;i(l1)
+addm;i(l4)
 change;l1 2 0 {l1_mag}
 change;lout 2 8 {lout_mag}
 change;idc 6 0 pulse({idc_mag} -{idc_mag} 0 0 0 0.5e-6 1e-6)
