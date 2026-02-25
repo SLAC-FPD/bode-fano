@@ -2,9 +2,11 @@ import numpy as np
 import os
 import fast_henry_data as fhd
 import pandas as pd
+import time
 from scipy.optimize import fsolve
+from circuit_calcs import *
 
-lj0 = 3.019320903444526e-10
+lj0 = calc_lj(1.e-6)
 loop_eq = lambda phi : lg/lj0*np.sin(np.pi - phi) + phi + np.pi
 
 lin_target = 3.183126393426777e-10
@@ -21,27 +23,28 @@ sigma = 5.8e7
 freq = 5e7
 
 '''
-x_in = 210e-6
-y_in = 27e-6
-y_m_in = 14e-6
-y_l1 = 32e-6
-y_m_jj = 1.2e-6
-y_l2 = 13e-6
-x_out = 80e-6
+x_in = 210e-6  # 201e-6
+y_in = 27e-6  # 31e-6
+y_m_in = 14e-6  # 11e-6
+y_l1 = 32e-6  # 27e-6
+y_m_jj = 1.2e-6  # 2e-6
+y_l2 = 13e-6  # 14e-6
+x_out = 80e-6  # 80e-6
 '''
 
-x_in_list = [210e-6]  # np.linspace(200e-6, 220e-6, 21)  # 
-y_in_list = [27e-6]  # np.linspace(25e-6, 35e-6, 11) # 
-y_m_in_list = [14e-6]  # np.linspace(11e-6, 17e-6, 7) # 
-y_l1_list = [32e-6]  # np.linspace(25e-6, 40e-6, 16) # 
-y_m_jj_list = [1.2e-6]  # [1.2e-6, 2.e-6]  # np.linspace(1e-6, 3e-6, 3) # 
-y_l2_list = [13e-6]  # np.linspace(10e-6, 15e-6, 6) # 
+x_in_list = np.linspace(120e-6, 200e-6, 81)  # [135e-6]  # 
+y_in_list = np.linspace(60e-6, 100e-6, 41) # [75e-6]  # 
+y_m_in_list = [2e-6, 3e-6]  # np.linspace(5e-6, 10e-6, 6) # 
+y_l1_list = np.linspace(60e-6, 100e-6, 41) #  [80e-6]  # 
+y_m_jj_list = [2e-6]  # np.linspace(1e-6, 3e-6, 3) # [1.2e-6]  # 
+y_l2_list = np.linspace(40e-6, 80e-6, 41) # [60e-6]  # 
 x_out_list = [80e-6]
 results = {"index": [],
            "x_in": [], "y_in": [], "y_m_in": [], "y_l1": [], "y_m_jj": [], "y_l2": [], "x_out": [],
            "l_in": [], "l_main": [], "l_jj1": [], "l_jj2": [], 
-           "m_12": [], "m_13": [], "m_14": [], "m_23": [], "m_24": [], "m_34": [],
-           # "l1": [], "l2": [], "k12": [], "lg": [], "lj": [], "jj_phase": [], "l_bfe": []
+           "k_12": [], "k_13": [], "k_14": [], "k_23": [], "k_24": [], "k_34": [],
+           # "m_12": [], "m_13": [], "m_14": [], "m_23": [], "m_24": [], "m_34": [],
+           "jj_phase": [], "l_bfe": [],  # "l1": [], "l2": [], "k12": [], "lg": [], "lj": [], 
            "score": []
            }
 notable_indices = []
@@ -50,6 +53,7 @@ filename = "bfe_parallel_circuit"
 f_ext = "_bfe_parallel"  # for zbuffile
 index = 0
 
+t1 = time.time()
 for x_in in x_in_list:
     for y_in in y_in_list:
         for y_m_in in y_m_in_list:
@@ -57,7 +61,7 @@ for x_in in x_in_list:
                 for y_m_jj in y_m_jj_list:
                     for y_l2 in y_l2_list:
                         results["index"].append(index)
-                        print(index)
+                        print(f"******index******")
                         x_out = 80e-6  # not relevant to the other parts
                         fasthenry_block = f'''
 Nin0 x=0 y=0
@@ -128,45 +132,53 @@ Eout1 Nout2 Nout3 w={w} h={h}
                         results["l_main"].append(l_mat[1][1])
                         results["l_jj1"].append(l_mat[2][2])
                         results["l_jj2"].append(l_mat[3][3])
-                        results["m_12"].append(l_mat[0][1])
-                        results["m_13"].append(l_mat[0][2])
-                        results["m_14"].append(l_mat[0][3])
-                        results["m_23"].append(l_mat[1][2])
-                        results["m_24"].append(l_mat[1][3])
-                        results["m_34"].append(l_mat[2][3])
-                        score = np.sqrt(((lin_target-l_mat[0][0])/lin_target)**2+((l0_target-l_mat[1][1])/l0_target)**2+
-                                        ((l1_target-l_mat[2][2])/l1_target)**2+((l2_target-l_mat[3][3])/l2_target)**2+
-                                        ((k0_target-k_mat[0][1])/k0_target)**2+((k_target-k_mat[2][3])/k_target)**2)
-                        results["score"].append(score)
-                        if score < 0.02:
-                            notable_indices.append(index)
-                            print(f"Closeness: {score}")
-                        index += 1
-                        '''
-                        l1 = l_mat[0][0] - np.abs(l_mat[2][2]) - np.abs(l_mat[3][3])
-                        l2 = l_mat[1][1]
-                        k12 = l_mat[0][1] / np.sqrt(l1*l2)
-                        lin = l_mat[2][2]
-                        lout = l_mat[3][3]
-                        k13 = np.abs(l_mat[0][2]/l_mat[2][2])
-                        k14 = np.abs(l_mat[0][3]/l_mat[3][3])
-                        lg = l2*(1 - k12**2*l1/(l1 + lin*(1 - k13**2) + lout*(1 - k14**2)))
+                        results["k_12"].append(k_mat[0][1])
+                        results["k_13"].append(k_mat[0][2])
+                        results["k_14"].append(k_mat[0][3])
+                        results["k_23"].append(k_mat[1][2])
+                        results["k_24"].append(k_mat[1][3])
+                        results["k_34"].append(k_mat[2][3])
+                        
+                        l1 = l_mat[2][2]
+                        l2 = l_mat[3][3]
+                        k12 = k_mat[2][3]
+                        l0 = l_mat[1][1]
+                        lg = l2*(1 - k12**2*l1/(l1 + l0))
                         phi_initial_guess = np.pi/2
                         phi_solution = fsolve(loop_eq, phi_initial_guess)[0]
                         phi_solution = phi_solution % (2*np.pi)
                         if phi_solution > np.pi: phi_solution = 2*np.pi - phi_solution
                         lj = lj0 / np.cos(phi_solution)
                         l_bfe = l1*(1 - k12**2*l2/(l2+lj))
+                        '''
                         results["l1"].append(l1)
                         results["l2"].append(l2)
                         results["k12"].append(k12)
                         results["lg"].append(lg)
                         results["lj"].append(lj)
+                        '''
                         results["jj_phase"].append(phi_solution)
                         results["l_bfe"].append(l_bfe)
-                        '''
+                        
+                        # print(l_bfe)
+                        score = np.abs((l_bfe + l0) / l0)
+                                #np.sqrt(((lin_target-l_mat[0][0])/lin_target)**2+((l0_target-l_mat[1][1])/l0_target)**2+
+                                #        ((l1_target-l_mat[2][2])/l1_target)**2+((l2_target-l_mat[3][3])/l2_target)**2+
+                                #        ((k0_target-k_mat[0][1])/k0_target)**2+((k_target-k_mat[2][3])/k_target)**2)
+                        results["score"].append(score)
+                        if score < 1:  # 01:
+                            notable_indices.append(index)
+                            print(f"FoM: {score}")
+                        index += 1
+t2 = time.time()                        
+print(f"Full loop took {(t2 - t1)/60} minutes.")
 
-print(notable_indices)
+# print(notable_indices)
+score_idx = np.argwhere(results["score"] == np.min(results["score"]))[0]
+print(np.argwhere(score_idx))
+for key in results.keys():
+    print(results[key][score_idx[len(score_idx)//2]])
+
 df = pd.DataFrame(results)
 df.to_csv(f"fh_results/fast_henry_results{f_ext}.csv", index=True, header=True)  # _closeup
 
