@@ -7,14 +7,14 @@ cd = CircuitData()  # create instance.
 
 # options
 template = "bfe"
-param_file = "params/bfe_params_251218.txt"  # _2601114.txt"   # None  # 
-variation = "parallel_bfe"  # "parallel_bfe_pulsed"  # "series_bfe" # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
+param_file = "params/bfe_params_260225.txt"  # _2601114.txt"   # None  # 
+variation = "parallel_bfe_realistic"  # "parallel_bfe_pulsed"  # "series_bfe" # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
 mode = ""
 if variation is not None: mode += f"_{variation}"
 
-loop_param = "v1_freq"  # "l2_mag"  # "idc_mag"  # "c1_offset"  # 
-loop_list = np.concatenate((np.linspace(1e7, 1e8, 91), np.linspace(1.1e8, 1e9, 90), np.linspace(1.1e9, 1e10, 90)), axis=None)
-# [5.e7]  # np.linspace(3e7, 7e7, 41)  # np.linspace(3.4489e-10, 3.4491e-10, 21)  # np.linspace(1.0339169242309647e-05*0.99999, 1.0339169242309647e-05*1.00001, 21)  # 
+loop_param = "idc_mag"  # "v1_freq"  # "l2_mag"  # "c1_offset"  # 
+loop_list = [5.e7]
+# [5.e7]  # np.linspace(3e7, 7e7, 41)  # np.linspace(3.4489e-10, 3.4491e-10, 21)  # np.linspace(1.0339169242309647e-05*0.99999, 1.0339169242309647e-05*1.00001, 21)  # (1 - np.logspace(-1, -10, 37)) * 1.0339169242309647e-05  # 
 # np.concatenate((np.linspace(1e7, 1e8, 91), np.linspace(1.1e8, 1e9, 90), np.linspace(1.1e9, 1e10, 90)), axis=None)
 loop_len = len(loop_list)
 
@@ -32,10 +32,10 @@ cd.change_param("filename", cd.params["filename"] + mode)
 
 # time settings here
 freq = cd.params["v1_freq"]
-round_digits = 8  # np.floor(np.log10(freq)) + 1  # 8 if doing multiple orders, based on 1e7 frequencies
+round_digits = np.floor(np.log10(freq)) + 1  # 8 if doing multiple orders, based on 1e7 frequencies
 step_time = 10**(-(round_digits+3))  # / 100  # * 10  # multiply or divide to this value
-idx_ringing = 100000 # 0  # 100000  # to remove beginning of simulation. 2e4 is default, 1e5 for paper
-npts = 100000 # 1e5 is default, 2e3 with step_time/100 for JJ ringing
+idx_ringing = 100000  # 0  # 100000  # to remove beginning of simulation. 2e4 is default, 1e5 for paper
+npts = 100000 # 1e5 is default, 2e3 with step_time/100 for JJ ringing, 1e7 with step_time*10 for 1 ms
 # for resonant: step_time <=*10, npts >= 1e5
 if "resonant" in variation: step_time *= 100
 start_time = 0  # change if needed
