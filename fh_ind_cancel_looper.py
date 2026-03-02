@@ -32,20 +32,23 @@ y_l2 = 13e-6  # 14e-6
 x_out = 80e-6  # 80e-6
 '''
 
-x_in_list = np.linspace(120e-6, 200e-6, 81)  # [135e-6]  # 
-y_in_list = np.linspace(60e-6, 100e-6, 41) # [75e-6]  # 
-y_m_in_list = [2e-6, 3e-6]  # np.linspace(5e-6, 10e-6, 6) # 
-y_l1_list = np.linspace(60e-6, 100e-6, 41) #  [80e-6]  # 
-y_m_jj_list = [2e-6]  # np.linspace(1e-6, 3e-6, 3) # [1.2e-6]  # 
-y_l2_list = np.linspace(40e-6, 80e-6, 41) # [60e-6]  # 
+
+x_in_list = [152e-6]  # np.linspace(151e-6, 153e-6, 3)  # 
+y_in_list = [65e-6]  # np.linspace(64e-6, 66e-6, 3)  # 
+y_m_in_list = [3e-6]  # 
+y_l1a_list = [16e-6]  # np.linspace(15e-6, 17e-6, 3)  # 
+y_l1b_list = [35e-6]  # np.linspace(34e-6, 36e-6, 3) # 
+x_l1_list = [50e-6]  # np.linspace(49e-6, 51e-6, 3) # 
+y_m_jj_list = [2e-6]  # np.linspace(1e-6, 3e-6, 3) #
+y_l2_list = [16e-6]  # np.linspace(15e-6, 17e-6, 3) # 
 x_out_list = [80e-6]
 results = {"index": [],
-           "x_in": [], "y_in": [], "y_m_in": [], "y_l1": [], "y_m_jj": [], "y_l2": [], "x_out": [],
+           "x_in": [], "y_in": [], "y_m_in": [], "x_l1": [], "y_l1a": [], "y_l1b": [], "y_m_jj": [], "y_l2": [], "x_out": [],
            "l_in": [], "l_main": [], "l_jj1": [], "l_jj2": [], 
            "k_12": [], "k_13": [], "k_14": [], "k_23": [], "k_24": [], "k_34": [],
            # "m_12": [], "m_13": [], "m_14": [], "m_23": [], "m_24": [], "m_34": [],
            "jj_phase": [], "l_bfe": [],  # "l1": [], "l2": [], "k12": [], "lg": [], "lj": [], 
-           "score": []
+           "score": [], "score2": []
            }
 notable_indices = []
 
@@ -57,127 +60,158 @@ t1 = time.time()
 for x_in in x_in_list:
     for y_in in y_in_list:
         for y_m_in in y_m_in_list:
-            for y_l1 in y_l1_list:
-                for y_m_jj in y_m_jj_list:
-                    for y_l2 in y_l2_list:
-                        results["index"].append(index)
-                        print(f"******index******")
-                        x_out = 80e-6  # not relevant to the other parts
-                        fasthenry_block = f'''
+            for y_l1a in y_l1a_list:
+                for y_l1b in y_l1b_list:
+                    for x_l1 in x_l1_list:
+                        for y_l2 in y_l2_list:
+                            for y_m_jj in y_m_jj_list: 
+                                results["index"].append(index)
+                                print(f"AAAAAAAAA{index}AAAAAAAAAA")
+                                x_out = 80e-6  # not relevant to the other parts
+                                fasthenry_block = f'''
 Nin0 x=0 y=0
 Nin1 x=0 y={y_in}
 Nin2 x={x_in} y={y_in}
 Nin3 x={x_in} y=0
 
+Ein0 Nin0 Nin1 w={w} h={h}
+Ein1 Nin1 Nin2 w={w} h={h}
+Ein2 Nin2 Nin3 w={w} h={h}
+
 Na0 x=0 y={y_in + y_m_in}
 Na1 x=0 y={2*y_in + y_m_in}
-Na2 x=0 y={2*y_in + y_m_in + y_l1}
-Na3 x={x_in} y={2*y_in + y_m_in + y_l1}
-Na4 x={x_in} y={2*y_in + y_m_in}
-Na5 x={x_in} y={2*y_in + y_m_in}
-Na6 x={x_in} y={y_in + y_m_in}
+Na2 x=0 y={2*y_in + y_m_in + y_l1a + y_l1b}
+Na3 x={x_l1} y={2*y_in + y_m_in + y_l1a + y_l1b}
+Na4 x={x_l1} y={2*y_in + y_m_in + y_l1a}
+Na5 x={x_in - x_l1} y={2*y_in + y_m_in + y_l1a}
+Na6 x={x_in - x_l1} y={2*y_in + y_m_in + y_l1a + y_l1b}
+Na7 x={x_in} y={2*y_in + y_m_in + y_l1a + y_l1b}
+Na8 x={x_in} y={2*y_in + y_m_in}
+Na9 x={x_in} y={2*y_in + y_m_in}
+Na10 x={x_in} y={y_in + y_m_in}
 
-Nb0 x=0 y={2*y_in + y_m_in + y_l1 + y_m_jj}
-Nb1 x=0 y={2*y_in + y_m_in + y_l1 + y_m_jj + y_l2}
-Nb2 x={x_in/2 - w/2} y={2*y_in + y_m_in + y_l1 + y_m_jj + y_l2}
-Nb3 x={x_in/2 + w/2} y={2*y_in + y_m_in + y_l1 + y_m_jj + y_l2}
-Nb4 x={x_in} y={2*y_in + y_m_in + y_l1 + y_m_jj + y_l2}
-Nb5 x={x_in} y={2*y_in + y_m_in + y_l1 + y_m_jj}
+Ea0 Na0 Na1 w={w} h={h}
+Ea1 Na1 Na2 w={w} h={h}
+Ea2 Na2 Na3 w={w} h={h}
+Ea3 Na3 Na4 w={w} h={h}
+Ea4 Na4 Na5 w={w} h={h}
+Ea5 Na5 Na6 w={w} h={h}
+Ea6 Na6 Na7 w={w} h={h}
+Ea7 Na7 Na8 w={w} h={h}
+Ea8 Na9 Na10 w={w} h={h}
+Ea9 Na10 Na0 w={w} h={h}
+
+Nb0 x=0 y={2*y_in + y_m_in + y_l1a + y_l1b + y_m_jj}
+Nb1 x=0 y={2*y_in + y_m_in + y_l1a + y_l1b + y_m_jj + y_l2}
+Nb2 x={x_in/2 - w/2} y={2*y_in + y_m_in + y_l1a + y_l1b + y_m_jj + y_l2}
+Nb3 x={x_in/2 + w/2} y={2*y_in + y_m_in + y_l1a + y_l1b + y_m_jj + y_l2}
+Nb4 x={x_in} y={2*y_in + y_m_in + y_l1a + y_l1b + y_m_jj + y_l2}
+Nb5 x={x_in} y={2*y_in + y_m_in + y_l1a + y_l1b + y_m_jj}
+Nb6 x={x_in - x_l1 - y_m_jj} y={2*y_in + y_m_in + y_l1a + y_l1b + y_m_jj}
+Nb7 x={x_in - x_l1 - y_m_jj} y={2*y_in + y_m_in + y_l1a + y_m_jj}
+Nb8 x={x_l1 + y_m_jj} y={2*y_in + y_m_in + y_l1a + y_m_jj}
+Nb9 x={x_l1 + y_m_jj} y={2*y_in + y_m_in + y_l1a + y_l1b + y_m_jj}
+
+Eb0 Nb0 Nb1 w={w} h={h}
+Eb1 Nb1 Nb2 w={w} h={h}
+Eb2 Nb3 Nb4 w={w} h={h}
+Eb3 Nb4 Nb5 w={w} h={h}
+Eb4 Nb5 Nb6 w={w} h={h}
+Eb5 Nb6 Nb7 w={w} h={h}
+Eb6 Nb7 Nb8 w={w} h={h}
+Eb7 Nb8 Nb9 w={w} h={h}
+Eb8 Nb9 Nb0 w={w} h={h}
 
 Nout0 x={-x_out} y={2*y_in + y_m_in}
 Nout1 x=0 y={2*y_in + y_m_in}
 Nout2 x={x_in} y={2*y_in + y_m_in}
 Nout3 x={x_in + x_out} y={2*y_in + y_m_in}
 
-Ein0 Nin0 Nin1 w={w} h={h}
-Ein1 Nin1 Nin2 w={w} h={h}
-Ein2 Nin2 Nin3 w={w} h={h}
-Ea0 Na0 Na1 w={w} h={h}
-Ea1 Na1 Na2 w={w} h={h}
-Ea2 Na2 Na3 w={w} h={h}
-Ea3 Na3 Na4 w={w} h={h}
-Ea4 Na5 Na6 w={w} h={h}
-Ea5 Na6 Na0 w={w} h={h}
-Eb0 Nb0 Nb1 w={w} h={h}
-Eb1 Nb1 Nb2 w={w} h={h}
-Eb2 Nb3 Nb4 w={w} h={h}
-Eb3 Nb4 Nb5 w={w} h={h}
-Eb4 Nb5 Nb0 w={w} h={h}
 Eout0 Nout0 Nout1 w={w} h={h}
 Eout1 Nout2 Nout3 w={w} h={h}
+
 '''
-                        f = open(f"fh_results/{filename}.inp", "w")
-                        f.write(f"**non-foster circuit**\n.Default z=0 sigma={sigma}\n\n")
+                                f = open(f"fh_results/{filename}.inp", "w")
+                                f.write(f"**non-foster circuit**\n.Default z=0 sigma={sigma}\n\n")
 
-                        f.write(fasthenry_block)
-                        f.write(f".external Nin0 Nin3\n.external Na1 Na5\n.external Na1 Na4\n.external Nb2 Nb3\n.freq fmin={freq} fmax={freq*10} ndec=1\n\n.end")
-                        f.close()
+                                f.write(fasthenry_block)
+                                f.write(f".external Nin0 Nin3\n.external Na1 Na9\n.external Na1 Na8\n.external Nb2 Nb3\n.freq fmin={freq} fmax={freq*10} ndec=1\n\n.end")
+                                f.close()
 
-                        os.system(f"fasthenry fh_results/{filename}.inp")
-                        # os.system(f"fasthenry fh_results/{filename}.inp -f simple -S {f_ext}") # -b to end wrspice after run
-                        # os.system(f"zbuf zbuffile{f_ext}") # -b to end wrspice after run
-                        
-                        fh_data = fhd.FastHenryData(target_freq=freq)
-                        # print(fh_data.inds)
-                        l_mat = fh_data.l_mat
-                        k_mat = fh_data.k_mat
-                        results["x_in"].append(x_in)
-                        results["y_in"].append(y_in)
-                        results["y_m_in"].append(y_m_in)
-                        results["y_l1"].append(y_l1)
-                        results["y_m_jj"].append(y_m_jj)
-                        results["y_l2"].append(y_l2)
-                        results["x_out"].append(x_out)
-                        results["l_in"].append(l_mat[0][0])
-                        results["l_main"].append(l_mat[1][1])
-                        results["l_jj1"].append(l_mat[2][2])
-                        results["l_jj2"].append(l_mat[3][3])
-                        results["k_12"].append(k_mat[0][1])
-                        results["k_13"].append(k_mat[0][2])
-                        results["k_14"].append(k_mat[0][3])
-                        results["k_23"].append(k_mat[1][2])
-                        results["k_24"].append(k_mat[1][3])
-                        results["k_34"].append(k_mat[2][3])
-                        
-                        l1 = l_mat[2][2]
-                        l2 = l_mat[3][3]
-                        k12 = k_mat[2][3]
-                        l0 = l_mat[1][1]
-                        lg = l2*(1 - k12**2*l1/(l1 + l0))
-                        phi_initial_guess = np.pi/2
-                        phi_solution = fsolve(loop_eq, phi_initial_guess)[0]
-                        phi_solution = phi_solution % (2*np.pi)
-                        if phi_solution > np.pi: phi_solution = 2*np.pi - phi_solution
-                        lj = lj0 / np.cos(phi_solution)
-                        l_bfe = l1*(1 - k12**2*l2/(l2+lj))
-                        '''
-                        results["l1"].append(l1)
-                        results["l2"].append(l2)
-                        results["k12"].append(k12)
-                        results["lg"].append(lg)
-                        results["lj"].append(lj)
-                        '''
-                        results["jj_phase"].append(phi_solution)
-                        results["l_bfe"].append(l_bfe)
-                        
-                        # print(l_bfe)
-                        score = np.abs((l_bfe + l0) / l0)
-                                #np.sqrt(((lin_target-l_mat[0][0])/lin_target)**2+((l0_target-l_mat[1][1])/l0_target)**2+
-                                #        ((l1_target-l_mat[2][2])/l1_target)**2+((l2_target-l_mat[3][3])/l2_target)**2+
-                                #        ((k0_target-k_mat[0][1])/k0_target)**2+((k_target-k_mat[2][3])/k_target)**2)
-                        results["score"].append(score)
-                        if score < 1:  # 01:
-                            notable_indices.append(index)
-                            print(f"FoM: {score}")
-                        index += 1
+                                os.system(f"fasthenry fh_results/{filename}.inp")
+                                # os.system(f"fasthenry fh_results/{filename}.inp -f simple -S {f_ext}") # -b to end wrspice after run
+                                # os.system(f"zbuf zbuffile{f_ext}") # -b to end wrspice after run
+                                
+                                fh_data = fhd.FastHenryData(target_freq=freq)
+                                # print(fh_data.inds)
+                                l_mat = fh_data.l_mat
+                                k_mat = fh_data.k_mat
+                                results["x_in"].append(x_in)
+                                results["y_in"].append(y_in)
+                                results["y_m_in"].append(y_m_in)
+                                results["x_l1"].append(x_l1)
+                                results["y_l1a"].append(y_l1a)
+                                results["y_l1b"].append(y_l1b)
+                                results["y_m_jj"].append(y_m_jj)
+                                results["y_l2"].append(y_l2)
+                                results["x_out"].append(x_out)
+                                results["l_in"].append(l_mat[0][0])
+                                results["l_main"].append(l_mat[1][1])
+                                results["l_jj1"].append(l_mat[2][2])
+                                results["l_jj2"].append(l_mat[3][3])
+                                results["k_12"].append(k_mat[0][1])
+                                results["k_13"].append(k_mat[0][2])
+                                results["k_14"].append(k_mat[0][3])
+                                results["k_23"].append(k_mat[1][2])
+                                results["k_24"].append(k_mat[1][3])
+                                results["k_34"].append(k_mat[2][3])
+                                
+                                l1 = l_mat[2][2]
+                                l2 = l_mat[3][3]
+                                k12 = k_mat[2][3]
+                                kin = k_mat[0][1]
+                                l0 = l_mat[1][1]
+                                lin = l_mat[0][0]
+                                lg = l2*(1 - k12**2*l1/(l1 + l0))
+                                phi_initial_guess = np.pi/2
+                                phi_solution = fsolve(loop_eq, phi_initial_guess)[0]
+                                phi_solution = phi_solution % (2*np.pi)
+                                if phi_solution > np.pi: phi_solution = 2*np.pi - phi_solution
+                                lj = lj0 / np.cos(phi_solution)
+                                l_bfe = l1*(1 - k12**2*l2/(l2+lj))
+                                '''
+                                results["l1"].append(l1)
+                                results["l2"].append(l2)
+                                results["k12"].append(k12)
+                                results["lg"].append(lg)
+                                results["lj"].append(lj)
+                                '''
+                                results["jj_phase"].append(phi_solution)
+                                results["l_bfe"].append(l_bfe)
+                                
+                                # print(l_bfe)
+                                score = np.sqrt(((lin_target-lin)/lin_target)**2+((l0_target-l0)/l0_target)**2+
+                                                ((l1_target-l1)/l1_target)**2+((l2_target-l2)/l2_target)**2+
+                                                ((k0_target-kin)/k0_target)**2+((k_target-k12)/k_target)**2)
+                                score2 = np.abs((l_bfe + l0) / l0)
+                                results["score"].append(score)  # choose your score
+                                results["score2"].append(score2)  # choose your score
+                                if score < 0.1 or score2 < 1:  # 01:
+                                    notable_indices.append(index)
+                                    print(f"FoM: {score}")
+                                index += 1
 t2 = time.time()                        
-print(f"Full loop took {(t2 - t1)/60} minutes.")
+print(f"Full loop took {(t2 - t1)/60} minutes, looked at {index} configurations.")
 
 # print(notable_indices)
 score_idx = np.argwhere(results["score"] == np.min(results["score"]))[0]
-print(np.argwhere(score_idx))
+score2_idx = np.argwhere(results["score2"] == np.min(results["score2"]))[0]
+print(np.argwhere(score2_idx), np.argwhere(score2_idx))
 for key in results.keys():
-    print(results[key][score_idx[len(score_idx)//2]])
+    print(key, results[key][score_idx[len(score_idx)//2]])
+
+#for key in results.keys():
+#    print(results[key][score2_idx[len(score2_idx)//2]])
 
 df = pd.DataFrame(results)
 df.to_csv(f"fh_results/fast_henry_results{f_ext}.csv", index=True, header=True)  # _closeup
