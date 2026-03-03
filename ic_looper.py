@@ -12,7 +12,7 @@ variation = "parallel_bfe_realistic"  # "parallel_bfe_pulsed"  # "series_bfe" # 
 mode = ""
 if variation is not None: mode += f"_{variation}"
 
-loop_param = "idc_mag"  # "v1_freq"  # "l2_mag"  # "c1_offset"  # 
+loop_param = "v1_freq"  # "idc_mag"  # "l2_mag"  # "c1_offset"  # 
 loop_list = [5.e7]
 # [5.e7]  # np.linspace(3e7, 7e7, 41)  # np.linspace(3.4489e-10, 3.4491e-10, 21)  # np.linspace(1.0339169242309647e-05*0.99999, 1.0339169242309647e-05*1.00001, 21)  # (1 - np.logspace(-1, -10, 37)) * 1.0339169242309647e-05  # 
 # np.concatenate((np.linspace(1e7, 1e8, 91), np.linspace(1.1e8, 1e9, 90), np.linspace(1.1e9, 1e10, 90)), axis=None)
