@@ -90,6 +90,30 @@ write {filename}.txt {measurables}
 .endc
 
 #VARIATIONS
+var;parallel_resonant_noise
+removem;v(5)-v(4)
+removem;v(4)-v(0)
+removem;v(101)
+removem;i(l2)
+remove;k1
+remove;l2
+remove;b1
+remove;l3
+remove;l4
+remove;idc
+remove;kdc
+remove;l1
+remove;kout
+remove;l6
+remove;l5
+removem;v(7)-v(0)
+removem;v(3)-v(2)
+removem;v(0)-v(3)
+add;c1 2 0 {c1_mag}
+change;lout 2 8 {lout_mag}
+change;v1 0 1 tgauss({v1_mag} 0 0)
+end
+
 var;parallel_resonant
 removem;v(5)-v(4)
 removem;v(4)-v(0)
