@@ -8,7 +8,7 @@ cd = CircuitData()  # create instance.
 # options
 template = "bfe"
 param_file = "params/bfe_params_260225.txt"  # _2601114.txt"   # None  # 
-variation = "parallel_bfe_realistic"  # "parallel_bfe_pulsed"  # "series_bfe" # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
+variation = "parallel_resonant_noise"  # "parallel_bfe_pulsed"  # "series_bfe" # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
 mode = ""
 if variation is not None: mode += f"_{variation}"
 
@@ -123,6 +123,9 @@ for loop_val in loop_list:
     pfreq_fft = pin_freq[comp_idx]
     pin_sum = pin_power[comp_idx]
     pout_sum = pout_power[comp_idx]
+    plt.plot(pin_freq, pin_power)
+    plt.plot(pout_freq, pout_power)
+    plt.show()
     '''
     print(pin_sum, pout_sum, power2dB(pout_sum/pin_sum))
     results_dict["pin_sum"].append(pin_sum)
