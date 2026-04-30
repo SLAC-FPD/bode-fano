@@ -7,8 +7,8 @@ cd = CircuitData()  # create instance.
 
 # options
 template = "bfe"
-param_file = "params/bfe_params_260225.txt"  # _2601114.txt"   # None  # 
-variation = "parallel_resonant_noise"  # "parallel_bfe_pulsed"  # "series_bfe" # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
+param_file = "params/bfe_params_251218.txt"  # _2601114.txt"   # None  # 
+variation = "parallel_bfe"  # "parallel_bfe_pulsed"  # "series_bfe" # _resonant"  # _no_bfe"  #  _bfe" # None  # "simple_lc"  # 
 mode = ""
 if variation is not None: mode += f"_{variation}"
 
