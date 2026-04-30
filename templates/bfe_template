@@ -52,7 +52,7 @@ maxdata,1024000
 filename,BFE
 
 #MEASURABLES
-i(lin) v(1)-v(0) i(l0) v(2)-v(0) v(3)-v(2) v(0)-v(3) i(l2) v(4)-v(0) v(5)-v(4) v(101) i(lout) v(7)-v(0) v(8)-v(0)
+@b1[cap] @b1[g0] @b1[gn] @b1[vgap] i(lin) v(1)-v(0) i(l0) v(2)-v(0) v(3)-v(2) v(0)-v(3) i(l2) v(4)-v(0) v(5)-v(4) v(101) i(lout) v(7)-v(0) v(8)-v(0)
 
 #CIRCUIT
 Bode-Fano Evasion Test Circuit
@@ -378,6 +378,8 @@ removem;v(7)-v(0)
 end
 
 #NOTES
+params 251218 is the one that works best
+
 lin 1 0 {lin_mag}
 
 lin 1 9 {lin_mag}
