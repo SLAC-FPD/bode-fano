@@ -208,13 +208,13 @@ def get_intermediate_impedances(component_dict, freq, phase, end_components=None
                 for from_to_component_name in from_to_components:
                     if from_to_component_name in end_components: new_from_to_components.remove(from_to_component_name)
                 if len(new_from_to_components) == 0:  # only if ALL from_to_components have been removed, we can do a parallel calculations.
-                    intermediate_impedance_inverted = 1 / from_component.get_impedance(freq, phase)  # do parallel calcs
+                    intermediate_impedance_inverted = 0  # do parallel calcs
                     for from_to_component_name in from_to_components:  # reiterate...
                         from_to_component = component_dict[from_to_component_name]
                         print("PARALLELS", from_to_component.label, from_to_component.impedance)
                         intermediate_impedance_inverted += 1 / from_to_component.intermediate_impedance
                         new_end_components.remove(from_to_component_name)
-                    from_component.intermediate_impedance = 1 / intermediate_impedance_inverted  # inverse after adding all parallel branches
+                    from_component.intermediate_impedance = from_component.get_impedance(freq, phase) + 1 / intermediate_impedance_inverted  # inverse after adding all parallel branches
                     new_end_components.append(from_component_name)  # update end component
                 else: continue
             print("INT IMP CALC RESULT: ", from_component_name, from_component.intermediate_impedance)
@@ -244,4 +244,4 @@ for comp_key in comp_dict.keys():
     print(comp)
     print("FROM", comp.comps_from)
     print("TO", comp.comps_to, "\n")
-get_intermediate_impedances(comp_dict, 5e7, 0, ['rin', 'l3', 'rout', 'l1_2'])
+get_intermediate_impedances(comp_dict, 5e7, 0, ['l3', 'rout', 'l1_2'])  # 'rin'
